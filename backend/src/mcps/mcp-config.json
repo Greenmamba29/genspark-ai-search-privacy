@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "mcps": {
+    "filesystem": {
+      "name": "filesystem-mcp-server",
+      "path": "./src/mcps/filesystem/filesystem-mcp-server",
+      "enabled": true,
+      "config": {
+        "max_file_size": "100MB",
+        "allowed_extensions": [".pdf", ".docx", ".txt", ".md", ".js", ".ts", ".py", ".json", ".csv", ".xlsx"],
+        "watch_directories": ["../../../test-files"],
+        "search_depth": 10,
+        "enable_search": true,
+        "enable_replace": false
+      }
+    },
+    "search": {
+      "name": "file-search-mcp",
+      "path": "./src/mcps/search/file-search-mcp",
+      "enabled": true,
+      "config": {
+        "index_path": "../../data/mcps/search-index",
+        "supported_formats": ["txt", "md", "js", "ts", "py", "json", "csv"],
+        "max_results": 100,
+        "fuzzy_search": true,
+        "semantic_search": true
+      }
+    },
+    "ai_filesystem": {
+      "name": "mcp-filesystem-server-ai-enhanced",
+      "path": "./src/mcps/search/mcp-filesystem-server-ai-enhanced",
+      "enabled": true,
+      "config": {
+        "ai_model": "local",
+        "semantic_threshold": 0.7,
+        "content_analysis": true,
+        "batch_size": 32
+      }
+    },
+    "documentation": {
+      "name": "seta-mcp",
+      "path": "./src/mcps/nlp-models/seta-mcp",
+      "enabled": true,
+      "config": {
+        "docs_path": "../../../docs",
+        "index_interval": 300000,
+        "embedding_model": "all-MiniLM-L6-v2"
+      }
+    }
+  },
+  "communication": {
+    "protocol": "stdio",
+    "timeout": 30000,
+    "retry_attempts": 3,
+    "health_check_interval": 60000
+  }
+}

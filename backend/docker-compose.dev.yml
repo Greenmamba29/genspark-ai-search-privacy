@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Redis for message bus
+  redis:
+    image: redis:7-alpine
+    container_name: genspark-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --appendfsync everysec
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Commander for debugging
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: genspark-redis-commander-dev
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Development container for backend agents
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: genspark-backend-dev
+    ports:
+      - "3001:3001"  # Agent API server
+      - "9229:9229"  # Node.js debugger
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ../data:/app/data
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=debug
+      - DATABASE_PATH=/app/data/genspark.db
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: npm run dev
+
+  # Lightweight file system watcher for testing
+  file-watcher:
+    image: alpine:latest
+    container_name: genspark-file-watcher-dev
+    volumes:
+      - ../test-files:/watch:ro
+      - ./scripts:/scripts:ro
+    command: sh -c "while true; do echo 'Watching test files...'; sleep 60; done"
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+    driver: local
+  node_modules:
+    driver: local
+
+networks:
+  default:
+    name: genspark-dev-network

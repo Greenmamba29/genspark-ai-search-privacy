@@ -1,0 +1,56 @@
+{
+  "application": {
+    "name": "GenSpark AI Search Engine",
+    "version": "2.0.0",
+    "description": "Advanced AI-powered search engine with intelligent document processing",
+    "features": {
+      "contentExtraction": true,
+      "semanticSearch": true,
+      "autoModelSelection": true,
+      "multiFormatSupport": [
+        "PDF", "DOCX", "TXT", "MD", "CSV", "XLSX", "JSON", "XML", "HTML"
+      ]
+    }
+  },
+  "models": {
+    "embedding": {
+      "technical": "sentence-transformers/all-mpnet-base-v2",
+      "narrative": "sentence-transformers/paraphrase-distilroberta-base-v1",
+      "data": "sentence-transformers/all-distilroberta-v1",
+      "default": "sentence-transformers/all-MiniLM-L6-v2"
+    },
+    "selection_criteria": {
+      "technical": {
+        "keywords": ["algorithm", "equation", "theorem", "proof", "analysis"],
+        "complexity_threshold": "medium"
+      },
+      "narrative": {
+        "keywords": ["story", "narrative", "creative", "literature"],
+        "complexity_threshold": "simple"
+      },
+      "data": {
+        "keywords": ["data", "statistics", "results", "metrics", "analysis"],
+        "has_tables": true
+      }
+    }
+  },
+  "processing": {
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "quality_threshold": 0.7,
+    "max_file_size": 52428800,
+    "extraction_timeout": 30000
+  },
+  "database": {
+    "type": "sqlite",
+    "path": "./data/genspark.db",
+    "backup_enabled": true,
+    "backup_interval": 86400000
+  },
+  "search": {
+    "max_results": 50,
+    "similarity_threshold": 0.6,
+    "rerank_enabled": true,
+    "context_window": 3
+  }
+}

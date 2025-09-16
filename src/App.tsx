@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Search, Moon, Sun, Upload } from 'lucide-react'
+import { Search } from 'lucide-react'
 import SearchInterface from './components/search/SearchInterface'
 import FileManager from './components/ui/FileManager'
 import Header from './components/layout/Header'
 
 function App() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('system')
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {

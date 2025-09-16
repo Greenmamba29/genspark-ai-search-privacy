@@ -1,0 +1,17 @@
+Date,Product,Category,Sales,Profit,Region,Customer_Segment
+2023-01-01,Laptop,Electronics,1500,300,North,Business
+2023-01-01,Tablet,Electronics,800,160,South,Consumer
+2023-01-02,Office Chair,Furniture,250,50,West,Business
+2023-01-02,Desk Lamp,Furniture,75,15,East,Consumer
+2023-01-03,Smartphone,Electronics,900,180,North,Consumer
+2023-01-03,Headphones,Electronics,150,30,South,Consumer
+2023-01-04,Standing Desk,Furniture,600,120,West,Business
+2023-01-04,Monitor,Electronics,400,80,East,Business
+2023-01-05,Keyboard,Electronics,100,20,North,Consumer
+2023-01-05,Mouse,Electronics,50,10,South,Consumer
+2023-01-06,Printer,Electronics,300,60,West,Business
+2023-01-06,Scanner,Electronics,200,40,East,Business
+2023-01-07,Webcam,Electronics,80,16,North,Consumer
+2023-01-07,Microphone,Electronics,120,24,South,Business
+2023-01-08,Bookshelf,Furniture,180,36,West,Consumer
+2023-01-08,Filing Cabinet,Furniture,220,44,East,Business

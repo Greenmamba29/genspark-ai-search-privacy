@@ -7,7 +7,7 @@ export default function SearchInterface() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async () => {
     setIsSearching(true)
     // Simulate AI search processing
     setTimeout(() => {
@@ -25,14 +25,14 @@ export default function SearchInterface() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Ask Grahmos AI anything... (e.g., 'Find documents about climate change')"
             className="search-input pl-12 pr-20 py-4 text-lg"
           />
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-accent-500 animate-pulse" />
             <button
-              onClick={() => handleSearch(searchQuery)}
+              onClick={() => handleSearch()}
               disabled={!searchQuery.trim() || isSearching}
               className="btn-primary px-4 py-2"
             >
@@ -57,7 +57,7 @@ export default function SearchInterface() {
                     key={index}
                     onClick={() => {
                       setSearchQuery(suggestion)
-                      handleSearch(suggestion)
+                      handleSearch()
                     }}
                     className="block w-full text-left px-3 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-md transition-colors duration-200"
                   >
@@ -146,9 +146,9 @@ export default function SearchInterface() {
               </label>
               <select className="search-input">
                 <option>Any size</option>
-                <option>Small (< 1MB)</option>
+                <option>Small (&lt; 1MB)</option>
                 <option>Medium (1MB - 10MB)</option>
-                <option>Large (> 10MB)</option>
+                <option>Large (&gt; 10MB)</option>
               </select>
             </div>
           </div>

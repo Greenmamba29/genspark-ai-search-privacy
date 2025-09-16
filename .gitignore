@@ -89,3 +89,28 @@ temp/
 
 # OS generated files
 Thumbs.db
+
+# Backend specific
+backend/node_modules/
+backend/dist/
+backend/logs/
+backend/data/
+backend/.env
+
+# MCP Servers (submodules)
+backend/src/mcps/filesystem/filesystem-mcp-server/
+backend/src/mcps/nlp-models/seta-mcp/
+backend/src/mcps/search/file-search-mcp/
+backend/src/mcps/search/mcp-filesystem-server-ai-enhanced/
+
+# Test files (keep structure but ignore content)
+test-files/*.pdf
+test-files/*.docx
+test-files/*.txt
+!test-files/.gitkeep
+
+# Netlify
+.netlify/
+
+# Local development
+.vite/
