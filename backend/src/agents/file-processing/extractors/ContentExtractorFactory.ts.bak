@@ -1,0 +1,654 @@
+import * as path from 'path';
+import * as fs from 'fs/promises';
+// PDF parser will be imported dynamically when needed
+import * as mammoth from 'mammoth';
+// csv-parser is used differently, removed unused import
+import { parseString as parseXml } from 'xml2js';
+import * as XLSX from 'xlsx';
+import { Readable } from 'stream';
+import {
+  PlainTextExtractor,
+  MarkdownExtractor,
+  JsonExtractor,
+  CsvExtractor,
+  CodeExtractor,
+  PdfExtractor,
+  DocxExtractor,
+  XlsxExtractor,
+  XmlExtractor,
+  HtmlExtractor,
+  TechnicalModelStrategy,
+  NarrativeModelStrategy,
+  DataModelStrategy,
+  MixedModelStrategy,
+  type ModelSelectionStrategy
+} from './BasicExtractors.js';
+
+export interface ExtractionResult {
+  content: string;
+  metadata: Record<string, unknown>;
+  confidence: number;
+  extractionMethod: string;
+  modelSelected?: string;
+  processingTime: number;
+  wordCount?: number;
+  pageCount?: number;
+  language?: string;
+  documentStructure?: DocumentStructure;
+}
+
+export interface DocumentStructure {
+  hasHeadings: boolean;
+  hasTables: boolean;
+  hasImages: boolean;
+  hasFormulas: boolean;
+  isStructured: boolean;
+  contentType: 'technical' | 'narrative' | 'data' | 'mixed';
+  complexity: 'simple' | 'medium' | 'complex';
+}
+
+export interface ExtractionOptions {
+  preserveFormatting?: boolean;
+  extractImages?: boolean;
+  extractTables?: boolean;
+  extractFormulas?: boolean;
+  language?: string;
+  persona?: string; // For model selection
+  instructions?: string; // For processing hints
+  maxPages?: number;
+  qualityThreshold?: number;
+}
+
+export interface ContentExtractor {
+  name: string;
+  supportedExtensions: string[];
+  supportedMimeTypes: string[];
+  extract(filePath: string, options?: ExtractionOptions): Promise<ExtractionResult>;
+  canHandle(filePath: string, mimeType?: string): boolean;
+  getOptimalModel(content: string, options?: ExtractionOptions): string;
+}
+
+export class ContentExtractorFactory {
+  private extractors: Map<string, ContentExtractor> = new Map();
+  private modelSelectionStrategies: Map<string, ModelSelectionStrategy> = new Map();
+
+  constructor() {
+    this.registerExtractors();
+    this.registerModelSelectionStrategies();
+  }
+
+  private registerExtractors(): void {
+    // Register all available extractors
+    this.registerExtractor(new PlainTextExtractor());
+    this.registerExtractor(new MarkdownExtractor());
+    this.registerExtractor(new PdfExtractor());
+    this.registerExtractor(new DocxExtractor());
+    this.registerExtractor(new CsvExtractor());
+    this.registerExtractor(new XlsxExtractor());
+    this.registerExtractor(new JsonExtractor());
+    this.registerExtractor(new XmlExtractor());
+    this.registerExtractor(new HtmlExtractor());
+    this.registerExtractor(new CodeExtractor());
+  }
+
+  private registerModelSelectionStrategies(): void {
+    this.modelSelectionStrategies.set('technical', new TechnicalModelStrategy());
+    this.modelSelectionStrategies.set('narrative', new NarrativeModelStrategy());
+    this.modelSelectionStrategies.set('data', new DataModelStrategy());
+    this.modelSelectionStrategies.set('mixed', new MixedModelStrategy());
+  }
+
+  private registerExtractor(extractor: ContentExtractor): void {
+    this.extractors.set(extractor.name, extractor);
+  }
+
+  public getExtractor(filePath: string, mimeType?: string): ContentExtractor | null {
+    const ext = path.extname(filePath).toLowerCase();
+    
+    for (const extractor of this.extractors.values()) {
+      if (extractor.canHandle(filePath, mimeType)) {
+        return extractor;
+      }
+    }
+    
+    return null;
+  }
+
+  public async extractContent(
+    filePath: string, 
+    options: ExtractionOptions = {}
+  ): Promise<ExtractionResult> {
+    const startTime = Date.now();
+    
+    try {
+      const extractor = this.getExtractor(filePath);
+      
+      if (!extractor) {
+        throw new Error(`No extractor available for file: ${filePath}`);
+      }
+
+      const result = await extractor.extract(filePath, options);
+      
+      // Analyze document structure for better model selection
+      const structure = this.analyzeDocumentStructure(result.content);
+      result.documentStructure = structure;
+      
+      // Select optimal model based on content and options
+      const selectedModel = this.selectOptimalModel(result.content, structure, options);
+      result.modelSelected = selectedModel;
+      
+      result.processingTime = Date.now() - startTime;
+      
+      return result;
+      
+    } catch (error) {
+      throw new Error(`Content extraction failed: ${(error as Error).message}`);
+    }
+  }
+
+  private analyzeDocumentStructure(content: string): DocumentStructure {
+    const hasHeadings = /^#{1,6}\s+|\n=+\n|\n-+\n/m.test(content);
+    const hasTables = /\|.*\|.*\|/m.test(content) || /\t.*\t/m.test(content);
+    const hasImages = /!\[.*\]\(.*\)|<img|image/i.test(content);
+    const hasFormulas = /\$.*\$|\\\(.*\\\)|\\\[.*\\\]/m.test(content);
+    
+    const wordCount = content.split(/\s+/).length;
+    const lineCount = content.split('\n').length;
+    
+    // Determine content type
+    let contentType: DocumentStructure['contentType'] = 'narrative';
+    if (hasFormulas || /algorithm|equation|theorem|proof/i.test(content)) {
+      contentType = 'technical';
+    } else if (hasTables || /data|statistics|results|analysis/i.test(content)) {
+      contentType = 'data';
+    } else if (hasHeadings && hasTables && hasFormulas) {
+      contentType = 'mixed';
+    }
+    
+    // Determine complexity
+    let complexity: DocumentStructure['complexity'] = 'simple';
+    if (wordCount > 1000 || hasFormulas || hasTables) {
+      complexity = 'medium';
+    }
+    if (wordCount > 5000 || (hasFormulas && hasTables && hasHeadings)) {
+      complexity = 'complex';
+    }
+    
+    return {
+      hasHeadings,
+      hasTables,
+      hasImages,
+      hasFormulas,
+      isStructured: hasHeadings || hasTables,
+      contentType,
+      complexity
+    };
+  }
+
+  private selectOptimalModel(
+    content: string, 
+    structure: DocumentStructure, 
+    options: ExtractionOptions
+  ): string {
+    const strategy = this.modelSelectionStrategies.get(structure.contentType);
+    
+    if (strategy) {
+      return strategy.selectModel(content, structure, options);
+    }
+    
+    // Default model selection
+    return this.getDefaultModel(structure, options);
+  }
+
+  private getDefaultModel(structure: DocumentStructure, options: ExtractionOptions): string {
+    // Default model selection based on complexity and persona
+    if (options.persona?.includes('technical') || structure.contentType === 'technical') {
+      return structure.complexity === 'complex' ? 'sentence-transformers/all-mpnet-base-v2' : 'sentence-transformers/all-MiniLM-L6-v2';
+    }
+    
+    if (structure.contentType === 'data') {
+      return 'sentence-transformers/all-distilroberta-v1';
+    }
+    
+    // General purpose model
+    return 'sentence-transformers/all-MiniLM-L6-v2';
+  }
+}
+
+export default ContentExtractorFactory;
+  name = 'plain-text';
+  supportedExtensions = ['.txt', '.text'];
+  supportedMimeTypes = ['text/plain'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const content = buffer.toString('utf-8');
+    
+    return {
+      content,
+      metadata: {
+        encoding: 'utf-8',
+        size: buffer.length
+      },
+      confidence: 1.0,
+      extractionMethod: this.name,
+      processingTime: 0,
+      wordCount: this.countWords(content),
+      language: this.detectLanguage(content)
+    };
+  }
+}
+
+class MarkdownExtractor extends BaseExtractor {
+  name = 'markdown';
+  supportedExtensions = ['.md', '.markdown'];
+  supportedMimeTypes = ['text/markdown'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const content = buffer.toString('utf-8');
+    
+    return {
+      content,
+      metadata: {
+        hasMarkdownSyntax: /[#*`\[\]]/.test(content),
+        size: buffer.length
+      },
+      confidence: 1.0,
+      extractionMethod: this.name,
+      processingTime: 0,
+      wordCount: this.countWords(content),
+      language: this.detectLanguage(content)
+    };
+  }
+}
+
+class PdfExtractor extends BaseExtractor {
+  name = 'pdf';
+  supportedExtensions = ['.pdf'];
+  supportedMimeTypes = ['application/pdf'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    
+    try {
+      // Dynamic import to avoid initialization issues
+      const pdfParse = (await import('pdf-parse')).default;
+      const data = await pdfParse(buffer, {
+        max: options.maxPages || undefined
+      });
+      
+      return {
+        content: data.text,
+        metadata: {
+          pages: data.numpages,
+          info: data.info,
+          version: data.version,
+          size: buffer.length
+        },
+        confidence: 0.9,
+        extractionMethod: this.name,
+        processingTime: 0,
+        wordCount: this.countWords(data.text),
+        pageCount: data.numpages,
+        language: this.detectLanguage(data.text)
+      };
+    } catch (error) {
+      throw new Error(`PDF extraction failed: ${(error as Error).message}`);
+    }
+  }
+
+  override getOptimalModel(content: string, options?: ExtractionOptions): string {
+    // PDFs often contain technical or academic content
+    if (options?.persona?.includes('academic') || options?.persona?.includes('technical')) {
+      return 'sentence-transformers/all-mpnet-base-v2';
+    }
+    return 'sentence-transformers/all-MiniLM-L12-v2';
+  }
+}
+
+class DocxExtractor extends BaseExtractor {
+  name = 'docx';
+  supportedExtensions = ['.docx'];
+  supportedMimeTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    
+    try {
+      const result = await mammoth.extractRawText({ buffer });
+      const content = result.value;
+      
+      return {
+        content,
+        metadata: {
+          hasImages: result.messages.some(m => m.message.includes('image')),
+          warnings: result.messages.filter(m => m.type === 'warning'),
+          size: buffer.length
+        },
+        confidence: 0.85,
+        extractionMethod: this.name,
+        processingTime: 0,
+        wordCount: this.countWords(content),
+        language: this.detectLanguage(content)
+      };
+    } catch (error) {
+      throw new Error(`DOCX extraction failed: ${(error as Error).message}`);
+    }
+  }
+}
+
+class CsvExtractor extends BaseExtractor {
+  name = 'csv';
+  supportedExtensions = ['.csv'];
+  supportedMimeTypes = ['text/csv'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const csvContent = buffer.toString('utf-8');
+    
+    // Convert CSV to readable text format
+    const lines = csvContent.split('\n');
+    const headers = lines[0]?.split(',') || [];
+    const content = `CSV Data with columns: ${headers.join(', ')}\n\n${csvContent}`;
+    
+    return {
+      content,
+      metadata: {
+        columns: headers.length,
+        rows: lines.length - 1,
+        headers,
+        size: buffer.length
+      },
+      confidence: 0.95,
+      extractionMethod: this.name,
+      processingTime: 0,
+      wordCount: this.countWords(content)
+    };
+  }
+
+  override getOptimalModel(content: string, options?: ExtractionOptions): string {
+    // Data-focused model for CSV content
+    return 'sentence-transformers/all-distilroberta-v1';
+  }
+}
+
+class XlsxExtractor extends BaseExtractor {
+  name = 'xlsx';
+  supportedExtensions = ['.xlsx', '.xls'];
+  supportedMimeTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    
+    try {
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const sheetNames = workbook.SheetNames;
+      
+      let content = '';
+      const metadata: any = { sheets: [], totalCells: 0 };
+      
+      for (const sheetName of sheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        if (!sheet) continue;
+        
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        
+        content += `Sheet: ${sheetName}\n`;
+        content += jsonData.map(row => (row as any[]).join('\t')).join('\n');
+        content += '\n\n';
+        
+        metadata.sheets.push({
+          name: sheetName,
+          rows: jsonData.length,
+          range: sheet['!ref'] || 'Unknown'
+        });
+      }
+      
+      return {
+        content,
+        metadata,
+        confidence: 0.9,
+        extractionMethod: this.name,
+        processingTime: 0,
+        wordCount: this.countWords(content)
+      };
+    } catch (error) {
+      throw new Error(`XLSX extraction failed: ${(error as Error).message}`);
+    }
+  }
+}
+
+class JsonExtractor extends BaseExtractor {
+  name = 'json';
+  supportedExtensions = ['.json'];
+  supportedMimeTypes = ['application/json'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const jsonContent = buffer.toString('utf-8');
+    
+    try {
+      const parsed = JSON.parse(jsonContent);
+      const content = `JSON Data Structure:\n${JSON.stringify(parsed, null, 2)}`;
+      
+      return {
+        content,
+        metadata: {
+          isValidJson: true,
+          keys: Object.keys(parsed).length,
+          size: buffer.length
+        },
+        confidence: 1.0,
+        extractionMethod: this.name,
+        processingTime: 0,
+        wordCount: this.countWords(content)
+      };
+    } catch (error) {
+      return {
+        content: jsonContent,
+        metadata: {
+          isValidJson: false,
+          error: (error as Error).message
+        },
+        confidence: 0.5,
+        extractionMethod: this.name,
+        processingTime: 0,
+        wordCount: this.countWords(jsonContent)
+      };
+    }
+  }
+}
+
+class XmlExtractor extends BaseExtractor {
+  name = 'xml';
+  supportedExtensions = ['.xml'];
+  supportedMimeTypes = ['application/xml', 'text/xml'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const xmlContent = buffer.toString('utf-8');
+    
+    return new Promise((resolve, reject) => {
+      parseXml(xmlContent, (err: any, result: any) => {
+        if (err) {
+          resolve({
+            content: xmlContent,
+            metadata: { isValidXml: false, error: err.message },
+            confidence: 0.5,
+            extractionMethod: this.name,
+            processingTime: 0,
+            wordCount: this.countWords(xmlContent)
+          });
+        } else {
+          const content = `XML Structure:\n${JSON.stringify(result, null, 2)}`;
+          resolve({
+            content,
+            metadata: { isValidXml: true, structure: result },
+            confidence: 0.9,
+            extractionMethod: this.name,
+            processingTime: 0,
+            wordCount: this.countWords(content)
+          });
+        }
+      });
+    });
+  }
+}
+
+class HtmlExtractor extends BaseExtractor {
+  name = 'html';
+  supportedExtensions = ['.html', '.htm'];
+  supportedMimeTypes = ['text/html'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const htmlContent = buffer.toString('utf-8');
+    
+    // Simple HTML tag removal
+    const content = htmlContent
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    return {
+      content,
+      metadata: {
+        hasJavaScript: /<script/i.test(htmlContent),
+        hasCss: /<style/i.test(htmlContent),
+        tagCount: (htmlContent.match(/<[^>]+>/g) || []).length,
+        size: buffer.length
+      },
+      confidence: 0.8,
+      extractionMethod: this.name,
+      processingTime: 0,
+      wordCount: this.countWords(content),
+      language: this.detectLanguage(content)
+    };
+  }
+}
+
+class CodeExtractor extends BaseExtractor {
+  name = 'code';
+  supportedExtensions = ['.js', '.ts', '.py', '.java', '.cpp', '.c', '.go', '.rs', '.php', '.rb'];
+  supportedMimeTypes = ['text/javascript', 'text/typescript', 'text/x-python'];
+
+  async extract(filePath: string, options: ExtractionOptions = {}): Promise<ExtractionResult> {
+    const buffer = await this.readFile(filePath);
+    const codeContent = buffer.toString('utf-8');
+    const ext = path.extname(filePath);
+    
+    // Extract comments and documentation
+    const comments = this.extractComments(codeContent, ext);
+    const functions = this.extractFunctions(codeContent, ext);
+    
+    const content = `Code file: ${path.basename(filePath)}
+Language: ${ext}
+
+Comments and Documentation:
+${comments}
+
+Function Signatures:
+${functions}
+
+Full Code:
+${codeContent}`;
+    
+    return {
+      content,
+      metadata: {
+        language: ext,
+        linesOfCode: codeContent.split('\n').length,
+        functionCount: functions.split('\n').filter(l => l.trim()).length,
+        commentCount: comments.split('\n').filter(l => l.trim()).length
+      },
+      confidence: 0.9,
+      extractionMethod: this.name,
+      processingTime: 0,
+      wordCount: this.countWords(content)
+    };
+  }
+
+  private extractComments(code: string, ext: string): string {
+    const comments: string[] = [];
+    
+    if (['.js', '.ts', '.java', '.cpp', '.c', '.go', '.rs', '.php'].includes(ext)) {
+      // Extract // and /* */ comments
+      const singleLineComments = code.match(/\/\/.*$/gm) || [];
+      const multiLineComments = code.match(/\/\*[\s\S]*?\*\//g) || [];
+      comments.push(...singleLineComments, ...multiLineComments);
+    } else if (ext === '.py') {
+      // Extract # and """ """ comments
+      const singleLineComments = code.match(/#.*$/gm) || [];
+      const multiLineComments = code.match(/"""[\s\S]*?"""/g) || [];
+      comments.push(...singleLineComments, ...multiLineComments);
+    }
+    
+    return comments.join('\n');
+  }
+
+  private extractFunctions(code: string, ext: string): string {
+    const functions: string[] = [];
+    
+    if (['.js', '.ts'].includes(ext)) {
+      const functionRegex = /(?:function\s+\w+|const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=).*?(?=\{)/g;
+      const matches = code.match(functionRegex) || [];
+      functions.push(...matches);
+    } else if (ext === '.py') {
+      const functionRegex = /def\s+\w+\([^)]*\):/g;
+      const matches = code.match(functionRegex) || [];
+      functions.push(...matches);
+    } else if (['.java', '.cpp', '.c'].includes(ext)) {
+      const functionRegex = /(?:public|private|protected)?\s*\w+\s+\w+\([^)]*\)/g;
+      const matches = code.match(functionRegex) || [];
+      functions.push(...matches);
+    }
+    
+    return functions.join('\n');
+  }
+
+  override getOptimalModel(content: string, options?: ExtractionOptions): string {
+    // Code-specific model for better understanding of technical content
+    return 'sentence-transformers/all-mpnet-base-v2';
+  }
+}
+
+// Model selection strategies
+interface ModelSelectionStrategy {
+  selectModel(content: string, structure: DocumentStructure, options: ExtractionOptions): string;
+}
+
+class TechnicalModelStrategy implements ModelSelectionStrategy {
+  selectModel(content: string, structure: DocumentStructure, options: ExtractionOptions): string {
+    if (structure.complexity === 'complex' || options.instructions?.includes('technical')) {
+      return 'sentence-transformers/all-mpnet-base-v2';
+    }
+    return 'sentence-transformers/all-MiniLM-L12-v2';
+  }
+}
+
+class NarrativeModelStrategy implements ModelSelectionStrategy {
+  selectModel(content: string, structure: DocumentStructure, options: ExtractionOptions): string {
+    if (options.persona?.includes('creative') || content.includes('story')) {
+      return 'sentence-transformers/paraphrase-distilroberta-base-v1';
+    }
+    return 'sentence-transformers/all-MiniLM-L6-v2';
+  }
+}
+
+class DataModelStrategy implements ModelSelectionStrategy {
+  selectModel(content: string, structure: DocumentStructure, options: ExtractionOptions): string {
+    return 'sentence-transformers/all-distilroberta-v1';
+  }
+}
+
+class MixedModelStrategy implements ModelSelectionStrategy {
+  selectModel(content: string, structure: DocumentStructure, options: ExtractionOptions): string {
+    // Use most versatile model for mixed content
+    return 'sentence-transformers/all-mpnet-base-v2';
+  }
+}
+
+export default ContentExtractorFactory;

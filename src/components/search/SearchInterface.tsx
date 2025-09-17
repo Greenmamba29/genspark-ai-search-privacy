@@ -1,16 +1,18 @@
-import { useState } from 'react'
-import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, Map } from 'lucide-react'
-import { useSearch } from '../../hooks/useSearch'
-import SearchResults from './SearchResults'
-import LeftPanel from '../panels/LeftPanel'
-import RightPanel from '../panels/RightPanel'
+import { useState } from 'react';
+import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, Map, Upload } from 'lucide-react';
+import { useSearch } from '../../hooks/useSearch';
+import SearchResults from './SearchResults';
+import LeftPanel from '../panels/LeftPanel';
+import RightPanel from '../panels/RightPanel';
+import FileUploadComponent from '../ui/FileUploadComponent'; // Import the new component
 
 export default function SearchInterface() {
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
   const [leftPanelOpen, setLeftPanelOpen] = useState(false)
-  const [rightPanelOpen, setRightPanelOpen] = useState(false)
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  const [showUpload, setShowUpload] = useState(false); // Add new state for upload component
   const [activeFilters, setActiveFilters] = useState({
     type: [] as string[],
     dateRange: undefined,
@@ -47,6 +49,18 @@ export default function SearchInterface() {
       {/* Side Panels */}
       <LeftPanel isOpen={leftPanelOpen} onClose={() => setLeftPanelOpen(false)} />
       <RightPanel isOpen={rightPanelOpen} onClose={() => setRightPanelOpen(false)} />
+
+      {/* File Upload Component - Conditionally rendered */}
+      {showUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-secondary-800 rounded-lg shadow-xl w-full max-w-3xl p-8">
+            <button onClick={() => setShowUpload(false)} className="absolute top-4 right-4 p-2 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-700">
+              <X className="w-6 h-6 text-secondary-500" />
+            </button>
+            <FileUploadComponent />
+          </div>
+        </div>
+      )}
       
       {/* Main Content with adjusted margins for panels */}
       <div className={`w-full max-w-6xl mx-auto space-y-6 transition-all duration-300 ease-out ${
@@ -171,6 +185,15 @@ export default function SearchInterface() {
           title="Insights Hub"
         >
           <Map className="w-5 h-5" />
+        </button>
+
+        {/* Upload Button */}
+        <button 
+          onClick={() => setShowUpload(true)}
+          className="p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 transition-all duration-200 bg-white dark:bg-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-700 text-secondary-600 dark:text-secondary-400"
+          title="Upload Files"
+        >
+          <Upload className="w-5 h-5" />
         </button>
       </div>
 

@@ -7,7 +7,10 @@
 
 import express from 'express';
 import cors from 'cors';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 import { EmbeddingModelManager } from './agents/vector-embedding/EmbeddingModelManager.js';
+import { FileIndexer } from './services/FileIndexer.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,13 +24,20 @@ const modelConfig = {
 };
 
 let modelManager: EmbeddingModelManager;
+let fileIndexer: FileIndexer;
 let isModelReady = false;
+let isIndexReady = false;
+
+// Get test-files directory path (relative to current directory)
+const testFilesDir = path.resolve(process.cwd(), '../test-files');
+console.log('📂 Test files directory:', testFilesDir);
+
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Initialize model manager
+// Initialize model manager and file indexer
 async function initializeModels() {
   try {
     console.log('🤖 Initializing lightweight AI models...');
@@ -35,18 +45,30 @@ async function initializeModels() {
     await modelManager.initialize();
     isModelReady = true;
     console.log('✅ Models initialized successfully');
+    
+    // Initialize file indexer
+    console.log('🗂️ Initializing file indexer...');
+    fileIndexer = new FileIndexer(modelManager, [testFilesDir]);
+    await fileIndexer.initialize();
+    isIndexReady = true;
+    console.log('✅ File indexer initialized successfully');
+    
   } catch (error) {
-    console.error('❌ Model initialization failed:', error);
+    console.error('❌ Initialization failed:', error);
     isModelReady = false;
+    isIndexReady = false;
   }
 }
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const stats = isIndexReady ? fileIndexer.getStats() : null;
   res.json({
     status: 'healthy',
     modelReady: isModelReady,
+    indexReady: isIndexReady,
     model: modelConfig.defaultModel,
+    indexStats: stats,
     timestamp: new Date().toISOString()
   });
 });
@@ -62,6 +84,7 @@ app.get('/api/models', (req, res) => {
     defaultModel: modelConfig.defaultModel
   });
 });
+
 
 // Initialize model endpoint
 app.post('/api/models/initialize', async (req, res) => {
@@ -94,131 +117,83 @@ app.post('/api/models/initialize', async (req, res) => {
 // Search endpoint
 app.post('/api/search', async (req, res) => {
   try {
-    const { query, filters, sortBy, sortOrder, model } = req.body;
+    const { query, filters, sortBy, sortOrder, model, limit } = req.body;
     const startTime = Date.now();
 
     console.log(`🔍 Search request: "${query}" using ${model || modelConfig.defaultModel}`);
 
-    // Mock search results with AI model processing
-    const mockResults = [
-      {
-        id: '1',
-        title: 'Machine Learning Fundamentals',
-        content: 'Introduction to machine learning algorithms and their applications in modern AI systems...',
-        type: 'document',
-        path: '/documents/ml-fundamentals.pdf',
-        size: 2048000,
-        lastModified: new Date('2024-01-15').toISOString(),
-        relevanceScore: 0.95
-      },
-      {
-        id: '2',
-        title: 'Neural Networks Deep Dive',
-        content: 'Comprehensive guide to understanding neural networks, backpropagation, and deep learning architectures...',
-        type: 'document',
-        path: '/documents/neural-networks.md',
-        size: 1536000,
-        lastModified: new Date('2024-02-01').toISOString(),
-        relevanceScore: 0.88
-      },
-      {
-        id: '3',
-        title: 'AI Search Implementation',
-        content: 'Code examples and implementation details for building AI-powered search systems...',
-        type: 'code',
-        path: '/code/ai-search.py',
-        size: 256000,
-        lastModified: new Date('2024-02-10').toISOString(),
-        relevanceScore: 0.82
-      },
-      {
-        id: '4',
-        title: 'Data Processing Pipeline',
-        content: 'Automated data processing pipeline for handling large-scale document collections...',
-        type: 'document',
-        path: '/documents/data-pipeline.docx',
-        size: 1024000,
-        lastModified: new Date('2024-01-28').toISOString(),
-        relevanceScore: 0.75
-      },
-      {
-        id: '5',
-        title: 'Vector Embeddings Guide',
-        content: 'Understanding vector embeddings and their role in semantic search applications...',
-        type: 'document',
-        path: '/documents/vector-embeddings.pdf',
-        size: 1792000,
-        lastModified: new Date('2024-02-05').toISOString(),
-        relevanceScore: 0.71
-      }
-    ];
-
-    // Filter results based on query relevance
-    const queryLower = query.toLowerCase();
-    let filteredResults = mockResults.filter(result => 
-      result.title.toLowerCase().includes(queryLower) ||
-      result.content.toLowerCase().includes(queryLower)
-    );
-
-    // If no specific matches, return all results
-    if (filteredResults.length === 0) {
-      filteredResults = mockResults;
+    // If indexer is not ready, fall back to mock data or return error
+    if (!isIndexReady || !fileIndexer) {
+      console.warn('⚠️ File indexer not ready, using fallback');
+      
+      // Simple fallback response
+      const fallbackResults = [{
+        id: 'fallback-1',
+        title: 'File Indexer Not Ready',
+        content: 'The file indexer is still initializing. Please try again in a moment.',
+        type: 'system',
+        path: '/system/status',
+        size: 0,
+        lastModified: new Date().toISOString(),
+        relevanceScore: 1.0
+      }];
+      
+      return res.json({
+        results: fallbackResults,
+        totalResults: fallbackResults.length,
+        processingTime: Date.now() - startTime,
+        model: model || modelConfig.defaultModel,
+        query,
+        filters: filters || {},
+        timestamp: new Date().toISOString(),
+        indexReady: false
+      });
     }
 
-    // Apply filters
-    if (filters?.type && filters.type.length > 0) {
-      filteredResults = filteredResults.filter(result => 
-        filters.type.includes(result.type)
-      );
-    }
+    // Use real file indexer search
+    const searchOptions = {
+      query,
+      filters: {
+        type: filters?.type,
+        dateRange: filters?.dateRange,
+        sizeRange: filters?.sizeRange
+      },
+      sortBy: sortBy || 'relevance',
+      sortOrder: sortOrder || 'desc',
+      limit: limit || 50
+    };
 
-    // Apply sorting
-    filteredResults.sort((a, b) => {
-      switch (sortBy) {
-        case 'relevance':
-          return sortOrder === 'asc' ? 
-            a.relevanceScore - b.relevanceScore : 
-            b.relevanceScore - a.relevanceScore;
-        case 'date':
-          return sortOrder === 'asc' ? 
-            new Date(a.lastModified).getTime() - new Date(b.lastModified).getTime() : 
-            new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
-        case 'size':
-          return sortOrder === 'asc' ? 
-            a.size - b.size : 
-            b.size - a.size;
-        case 'name':
-          return sortOrder === 'asc' ? 
-            a.title.localeCompare(b.title) : 
-            b.title.localeCompare(a.title);
-        default:
-          return b.relevanceScore - a.relevanceScore;
-      }
-    });
+    const searchResult = await fileIndexer.search(searchOptions);
 
-    // Generate embeddings if model is ready (for demonstration)
-    if (isModelReady && modelManager) {
-      try {
-        const embedding = await modelManager.generateEmbedding(query);
-        console.log(`📊 Generated ${embedding.length}-dimensional embedding`);
-      } catch (error) {
-        console.warn('⚠️ Embedding generation failed:', error);
-      }
-    }
+    // Format results for frontend compatibility
+    const formattedResults = searchResult.results.map(file => ({
+      id: file.id,
+      title: file.title,
+      content: file.content.substring(0, 500) + (file.content.length > 500 ? '...' : ''), // Truncate for display
+      type: file.type,
+      path: file.path,
+      size: file.size,
+      lastModified: file.lastModified,
+      relevanceScore: file.relevanceScore || 0,
+      metadata: file.metadata,
+      chunks: file.chunks?.length || 0
+    }));
 
-    const processingTime = Date.now() - startTime;
+    const totalProcessingTime = Date.now() - startTime;
 
     res.json({
-      results: filteredResults,
-      totalResults: filteredResults.length,
-      processingTime,
+      results: formattedResults,
+      totalResults: searchResult.totalResults,
+      processingTime: totalProcessingTime,
+      searchTime: searchResult.processingTime,
       model: model || modelConfig.defaultModel,
       query,
       filters: filters || {},
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      indexReady: true
     });
 
-    console.log(`✅ Search completed in ${processingTime}ms, returned ${filteredResults.length} results`);
+    console.log(`✅ Real search completed in ${totalProcessingTime}ms (${searchResult.processingTime}ms search), returned ${formattedResults.length}/${searchResult.totalResults} results`);
 
   } catch (error) {
     console.error('Search error:', error);
