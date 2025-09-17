@@ -1,77 +1,181 @@
 import { useState } from 'react'
-import { Search, Filter, Grid, List, Sparkles } from 'lucide-react'
+import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, Map } from 'lucide-react'
+import { useSearch } from '../../hooks/useSearch'
+import SearchResults from './SearchResults'
+import LeftPanel from '../panels/LeftPanel'
+import RightPanel from '../panels/RightPanel'
 
 export default function SearchInterface() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false)
+  const [rightPanelOpen, setRightPanelOpen] = useState(false)
+  const [activeFilters, setActiveFilters] = useState({
+    type: [] as string[],
+    dateRange: undefined,
+    sizeRange: undefined,
+    tags: [] as string[]
+  })
+
+  const {
+    results,
+    isSearching,
+    error,
+    totalResults,
+    processingTime,
+    model,
+    query,
+    isBackendConnected,
+    search,
+    // clearResults,
+    setFilters
+  } = useSearch()
 
   const handleSearch = async () => {
-    setIsSearching(true)
-    // Simulate AI search processing
-    setTimeout(() => {
-      setIsSearching(false)
-    }, 1500)
+    if (!searchQuery.trim()) return
+    await search(searchQuery, activeFilters)
+  }
+
+  const handleFilterChange = (newFilters: typeof activeFilters) => {
+    setActiveFilters(newFilters)
+    setFilters(newFilters)
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Search Bar */}
-      <div className="relative">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Ask Grahmos AI anything... (e.g., 'Find documents about climate change')"
-            className="search-input pl-12 pr-20 py-4 text-lg"
-          />
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-accent-500 animate-pulse" />
-            <button
-              onClick={() => handleSearch()}
-              disabled={!searchQuery.trim() || isSearching}
-              className="btn-primary px-4 py-2"
-            >
-              {isSearching ? 'Searching...' : 'Search'}
-            </button>
-          </div>
-        </div>
+    <>
+      {/* Side Panels */}
+      <LeftPanel isOpen={leftPanelOpen} onClose={() => setLeftPanelOpen(false)} />
+      <RightPanel isOpen={rightPanelOpen} onClose={() => setRightPanelOpen(false)} />
+      
+      {/* Main Content with adjusted margins for panels */}
+      <div className={`w-full max-w-6xl mx-auto space-y-6 transition-all duration-300 ease-out ${
+        leftPanelOpen ? 'lg:ml-96' : ''
+      } ${
+        rightPanelOpen ? 'lg:mr-96' : ''
+      }`}>
         
-        {/* AI Suggestions */}
-        {!searchQuery && (
-          <div className="absolute top-full mt-2 w-full bg-white dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700 shadow-lg z-10">
-            <div className="p-4">
-              <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-3">Try these AI-powered searches:</p>
-              <div className="space-y-2">
-                {[
-                  "Find all PDF documents from last month",
-                  "Show me images with people in them",
-                  "Search for code files containing 'authentication'",
-                  "Find presentations about machine learning"
-                ].map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setSearchQuery(suggestion)
-                      handleSearch()
-                    }}
-                    className="block w-full text-left px-3 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-md transition-colors duration-200"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
+        {/* Search Results Console - Above search input */}
+        {(searchQuery || results.length > 0 || isSearching) && (
+          <div className="space-y-4">
+            <div className="card p-6">
+              <SearchResults
+                results={results}
+                totalResults={totalResults}
+                processingTime={processingTime}
+                model={model}
+                query={query}
+                isSearching={isSearching}
+                viewMode={viewMode}
+                isBackendConnected={isBackendConnected}
+              />
+              {error && (
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-red-800 dark:text-red-200 text-sm">
+                    <span className="font-medium">Search Error:</span> {error}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
+
+        {/* Main Search Container */}
+        <div className="flex items-center space-x-4">
+        {/* Left Panel Toggle */}
+        <button 
+          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+          className={`p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 transition-all duration-200 ${
+            leftPanelOpen 
+              ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400 shadow-lg'
+              : 'bg-white dark:bg-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-700 text-secondary-600 dark:text-secondary-400'
+          }`}
+          title="Control Center"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Search Bar - Centered */}
+        <div className="flex-1 relative">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Ask Grahmos AI anything... (e.g., 'Find documents about machine learning')"
+              className="search-input pl-12 pr-20 py-4 text-lg w-full"
+            />
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                {isBackendConnected ? (
+                  <div title="Local AI Connected">
+                    <Cpu className="w-5 h-5 text-green-500" />
+                  </div>
+                ) : (
+                  <div title="Demo Mode">
+                    <Sparkles className="w-5 h-5 text-yellow-500" />
+                  </div>
+                )}
+                <button
+                  onClick={() => handleSearch()}
+                  disabled={!searchQuery.trim() || isSearching}
+                  className="btn-primary px-4 py-2"
+                >
+                  {isSearching ? 'Searching...' : 'Search'}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* AI Suggestions */}
+          {!searchQuery && !results.length && (
+            <div className="absolute top-full mt-2 w-full bg-white dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700 shadow-lg z-10">
+              <div className="p-4">
+                <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-3">
+                  Try these AI-powered searches with {model.split('/').pop() || 'local AI'}:
+                </p>
+                <div className="space-y-2">
+                  {[
+                    "Find all PDF documents about machine learning",
+                    "Show me code files containing authentication",
+                    "Search for recent presentations and documents",
+                    "Find technical documentation and guides"
+                  ].map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSearchQuery(suggestion)
+                        handleSearch()
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-700 rounded-md transition-colors duration-200"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel Toggle */}
+        <button 
+          onClick={() => setRightPanelOpen(!rightPanelOpen)}
+          className={`p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 transition-all duration-200 ${
+            rightPanelOpen 
+              ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400 shadow-lg'
+              : 'bg-white dark:bg-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-700 text-secondary-600 dark:text-secondary-400'
+          }`}
+          title="Insights Hub"
+        >
+          <Map className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Search Controls */}
-      <div className="flex items-center justify-between">
+        {/* Search Controls - Compact version below search bar */}
+        <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -84,7 +188,13 @@ export default function SearchInterface() {
           </button>
           
           <div className="text-sm text-secondary-600 dark:text-secondary-400">
-            {isSearching ? 'AI is processing your search...' : 'Ready to search offline'}
+            {isSearching ? (
+              `AI is processing your search using ${model.split('/').pop() || 'default model'}...`
+            ) : isBackendConnected ? (
+              `Ready to search offline with ${model.split('/').pop() || 'local AI'}`
+            ) : (
+              'Running in demonstration mode'
+            )}
           </div>
         </div>
 
@@ -112,20 +222,31 @@ export default function SearchInterface() {
         </div>
       </div>
 
-      {/* Collapsible Filters Panel */}
-      {showFilters && (
-        <div className="card p-6 animate-slide-down">
+        {/* Collapsible Filters Panel */}
+        {showFilters && (
+          <div className="card p-6 animate-slide-down">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
                 File Type
               </label>
-              <select className="search-input">
-                <option>All types</option>
-                <option>Documents</option>
-                <option>Images</option>
-                <option>Videos</option>
-                <option>Code</option>
+              <select 
+                className="search-input"
+                value={activeFilters.type.length > 0 ? activeFilters.type[0] : ''}
+                onChange={(e) => {
+                  const newFilters = {
+                    ...activeFilters,
+                    type: e.target.value ? [e.target.value] : []
+                  }
+                  handleFilterChange(newFilters)
+                }}
+              >
+                <option value="">All types</option>
+                <option value="document">Documents</option>
+                <option value="image">Images</option>
+                <option value="video">Videos</option>
+                <option value="code">Code</option>
+                <option value="other">Other</option>
               </select>
             </div>
             <div>
@@ -152,28 +273,33 @@ export default function SearchInterface() {
               </select>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Search Results Area */}
-      {searchQuery && (
-        <div className="space-y-4">
-          {isSearching ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex items-center space-x-3 text-primary-600 dark:text-primary-400">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-500 border-t-transparent"></div>
-                <span>AI is analyzing your search...</span>
-              </div>
+          {/* Clear Filters */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-secondary-600 dark:text-secondary-400">
+              {activeFilters.type.length > 0 && (
+                <span>File type: {activeFilters.type.join(', ')}</span>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-12 text-secondary-600 dark:text-secondary-400">
-              <Sparkles className="w-12 h-12 mx-auto mb-4 text-accent-500" />
-              <p>Search results will appear here</p>
-              <p className="text-sm mt-2">Grahmos AI will find the most relevant content offline</p>
-            </div>
-          )}
+            <button
+              onClick={() => {
+                const emptyFilters = {
+                  type: [] as string[],
+                  dateRange: undefined,
+                  sizeRange: undefined,
+                  tags: [] as string[]
+                }
+                handleFilterChange(emptyFilters)
+              }}
+              className="btn-secondary btn-sm"
+            >
+              Clear Filters
+            </button>
+          </div>
         </div>
-      )}
-    </div>
+        )}
+        
+      </div>
+    </>
   )
 }
