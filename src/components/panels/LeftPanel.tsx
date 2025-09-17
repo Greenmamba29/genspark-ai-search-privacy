@@ -504,7 +504,7 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
             {/* Footer */}
             <div className="sticky bottom-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 p-4">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>GenSpark AI Search</span>
+                <span>Grahmos AI Search</span>
                 <span>v2.0.0</span>
               </div>
             </div>

@@ -1,8 +1,8 @@
-# GenSpark AI Search - Technical Overview
+# Grahmos AI Search - Technical Overview
 
 ## Architecture
 
-The GenSpark AI Search system follows a **microservices architecture** with specialized AI agents:
+The Grahmos AI Search system follows a **microservices architecture** with specialized AI agents:
 
 ### Core Agents
 

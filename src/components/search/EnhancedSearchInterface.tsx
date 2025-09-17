@@ -233,22 +233,22 @@ export default function EnhancedSearchInterface() {
         )}
       </AnimatePresence>
 
-      {/* Main Content Area */}
-      <div className={`transition-all duration-300 ease-out ${
+      {/* Main Content Area - Console Layout */}
+      <div className={`min-h-screen flex flex-col transition-all duration-300 ease-out ${
         uiState.leftPanelOpen ? 'lg:ml-96' : ''
       } ${
         uiState.rightPanelOpen ? 'lg:mr-96' : ''
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 flex flex-col">
           
           {/* Enhanced Header with Categories */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8 flex-shrink-0"
           >
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6">
-              GenSpark AI Search
+              Grahmos AI Search
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
               Discover, analyze, and understand your documents with the power of AI
@@ -260,7 +260,7 @@ export default function EnhancedSearchInterface() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex flex-wrap justify-center gap-3 mb-8"
+            className="flex flex-wrap justify-center gap-3 mb-8 flex-shrink-0"
           >
             {SEARCH_CATEGORIES.map((category) => {
               const IconComponent = category.icon;
@@ -283,245 +283,248 @@ export default function EnhancedSearchInterface() {
             })}
           </motion.div>
 
-          {/* Enhanced Search Bar */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="relative max-w-4xl mx-auto mb-8"
-          >
-            <div className="flex items-center space-x-4">
-              {/* Control Panel Toggle */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setUiState(prev => ({ ...prev, leftPanelOpen: !prev.leftPanelOpen }))}
-                className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                  uiState.leftPanelOpen 
-                    ? 'bg-blue-500 border-blue-500 text-white shadow-lg'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-700'
-                }`}
-                title="Control Center (⌘+K)"
-              >
-                <Menu className="w-5 h-5" />
-              </motion.button>
-
-              {/* Main Search Input */}
-              <div className="flex-1 relative">
-                <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 transition-colors group-focus-within:text-blue-500" />
-                  <input
-                    id="search-input"
-                    type="text"
-                    value={searchState.query}
-                    onChange={(e) => setSearchState(prev => ({ 
-                      ...prev, 
-                      query: e.target.value,
-                      showSuggestions: e.target.value.length > 0 
-                    }))}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    onFocus={() => setSearchState(prev => ({ 
-                      ...prev, 
-                      showSuggestions: prev.query.length > 0 
-                    }))}
-                    placeholder="Ask AI to find anything... (⌘+K)"
-                    className="w-full pl-12 pr-32 py-4 text-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 placeholder-slate-400"
-                  />
-                  
-                  {/* Search Status Indicators */}
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-3">
-                    <AnimatePresence>
-                      {searchState.enhancedQuery && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          className="flex items-center space-x-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full"
-                          title={`Enhanced by AI (${Math.round((searchState.confidence || 0) * 100)}% confidence)`}
-                        >
-                          <Brain className="w-3 h-3" />
-                          <span>AI</span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Connection Status */}
-                    <div title={isBackendConnected ? 'Local AI Connected' : 'Demo Mode'}>
-                      {isBackendConnected ? (
-                        <Cpu className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Sparkles className="w-5 h-5 text-yellow-500" />
-                      )}
-                    </div>
-
-                    {/* Search Button */}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleSearch()}
-                      disabled={!searchState.query.trim() || isSearching}
-                      className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                    >
-                      {isSearching ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Zap className="w-4 h-4" />
-                        </motion.div>
-                      ) : (
-                        'Search'
-                      )}
-                    </motion.button>
+          {/* Results Area - Takes remaining space, grows to fill */}
+          <div className="flex-1 flex flex-col justify-end min-h-0">
+            {/* Search Results - Positioned above search bar */}
+            <AnimatePresence>
+              {(currentQuery || results.length > 0 || isSearching) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="mb-6 flex-1 overflow-auto"
+                >
+                  <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6">
+                    <SearchResults
+                      results={results}
+                      totalResults={totalResults}
+                      processingTime={processingTime}
+                      model={model}
+                      query={currentQuery}
+                      isSearching={isSearching}
+                      viewMode={uiState.viewMode}
+                      isBackendConnected={isBackendConnected}
+                    />
+                    
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
+                      >
+                        <p className="text-red-800 dark:text-red-200 text-sm">
+                          <span className="font-medium">Search Error:</span> {error}
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
-                </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* Enhanced Suggestions Dropdown */}
-                <AnimatePresence>
-                  {searchState.showSuggestions && !isSearching && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      className="absolute top-full mt-2 w-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl z-20 overflow-hidden"
-                    >
-                      {/* AI Suggestions Header */}
-                      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center space-x-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          <Lightbulb className="w-4 h-4" />
-                          <span>AI-powered suggestions with {model.split('/').pop() || 'local AI'}</span>
-                        </div>
+            {/* Fixed Search Console at Bottom */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="relative max-w-4xl mx-auto flex-shrink-0"
+            >
+              <div className="flex items-center space-x-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-4">
+                {/* Control Panel Toggle */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setUiState(prev => ({ ...prev, leftPanelOpen: !prev.leftPanelOpen }))}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    uiState.leftPanelOpen 
+                      ? 'bg-blue-500 border-blue-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-blue-300 dark:hover:border-blue-700'
+                  }`}
+                  title="Control Center (⌘+K)"
+                >
+                  <Menu className="w-5 h-5" />
+                </motion.button>
+
+                {/* Main Search Input */}
+                <div className="flex-1 relative">
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 transition-colors group-focus-within:text-blue-500" />
+                    <input
+                      id="search-input"
+                      type="text"
+                      value={searchState.query}
+                      onChange={(e) => setSearchState(prev => ({ 
+                        ...prev, 
+                        query: e.target.value,
+                        showSuggestions: e.target.value.length > 0 
+                      }))}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      onFocus={() => setSearchState(prev => ({ 
+                        ...prev, 
+                        showSuggestions: prev.query.length > 0 
+                      }))}
+                      placeholder="Ask AI to find anything... (⌘+K)"
+                      className="w-full pl-12 pr-32 py-4 text-lg bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-xl shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 placeholder-slate-400"
+                    />
+                    
+                    {/* Search Status Indicators */}
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-3">
+                      <AnimatePresence>
+                        {searchState.enhancedQuery && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex items-center space-x-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full"
+                            title={`Enhanced by AI (${Math.round((searchState.confidence || 0) * 100)}% confidence)`}
+                          >
+                            <Brain className="w-3 h-3" />
+                            <span>AI</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Connection Status */}
+                      <div title={isBackendConnected ? 'Local AI Connected' : 'Demo Mode'}>
+                        {isBackendConnected ? (
+                          <Cpu className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <Sparkles className="w-5 h-5 text-yellow-500" />
+                        )}
                       </div>
 
-                      <div className="max-h-96 overflow-y-auto">
-                        {/* Quick Actions */}
-                        {QUICK_SEARCHES.filter(qs => 
-                          qs.query.toLowerCase().includes(searchState.query.toLowerCase()) ||
-                          qs.category.toLowerCase().includes(searchState.query.toLowerCase())
-                        ).slice(0, 3).map((quickSearch, index) => {
-                          const IconComponent = quickSearch.icon;
-                          return (
-                            <motion.button
-                              key={index}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              onClick={() => handleQuickSearch(quickSearch.query)}
-                              className="w-full p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 text-left"
-                            >
-                              <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg">
-                                <IconComponent className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-medium text-slate-900 dark:text-white text-sm">
-                                  {quickSearch.query}
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  {quickSearch.category}
-                                </p>
-                              </div>
-                            </motion.button>
-                          );
-                        })}
+                      {/* Search Button */}
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSearch()}
+                        disabled={!searchState.query.trim() || isSearching}
+                        className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      >
+                        {isSearching ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Zap className="w-4 h-4" />
+                          </motion.div>
+                        ) : (
+                          'Search'
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
 
-                        {/* Recent Searches */}
-                        {recentSearches.length > 0 && (
-                          <>
-                            <div className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-                              <div className="flex items-center space-x-1">
-                                <Clock className="w-3 h-3" />
-                                <span>Recent Searches</span>
-                              </div>
-                            </div>
-                            {recentSearches.slice(0, 3).map((search, index) => (
+                  {/* Enhanced Suggestions Dropdown - Above search bar */}
+                  <AnimatePresence>
+                    {searchState.showSuggestions && !isSearching && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute bottom-full mb-2 w-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl z-20 overflow-hidden"
+                      >
+                        {/* AI Suggestions Header */}
+                        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center space-x-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                            <Lightbulb className="w-4 h-4" />
+                            <span>AI-powered suggestions with {model.split('/').pop() || 'local AI'}</span>
+                          </div>
+                        </div>
+
+                        <div className="max-h-96 overflow-y-auto">
+                          {/* Quick Actions */}
+                          {QUICK_SEARCHES.filter(qs => 
+                            qs.query.toLowerCase().includes(searchState.query.toLowerCase()) ||
+                            qs.category.toLowerCase().includes(searchState.query.toLowerCase())
+                          ).slice(0, 3).map((quickSearch, index) => {
+                            const IconComponent = quickSearch.icon;
+                            return (
                               <motion.button
                                 key={index}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: (index + 3) * 0.1 }}
-                                onClick={() => handleQuickSearch(search.query)}
+                                transition={{ delay: index * 0.1 }}
+                                onClick={() => handleQuickSearch(quickSearch.query)}
                                 className="w-full p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 text-left"
                               >
-                                <Clock className="w-4 h-4 text-slate-400" />
-                                <span className="text-sm text-slate-700 dark:text-slate-300 truncate">
-                                  {search.query}
-                                </span>
-                                <span className="text-xs text-slate-400">
-                                  {new Date(search.lastUsed).toLocaleDateString()}
-                                </span>
+                                <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg">
+                                  <IconComponent className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium text-slate-900 dark:text-white text-sm">
+                                    {quickSearch.query}
+                                  </p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {quickSearch.category}
+                                  </p>
+                                </div>
                               </motion.button>
-                            ))}
-                          </>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                            );
+                          })}
 
-              {/* Action Buttons */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setUiState(prev => ({ ...prev, rightPanelOpen: !prev.rightPanelOpen }))}
-                className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                  uiState.rightPanelOpen 
-                    ? 'bg-purple-500 border-purple-500 text-white shadow-lg'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-purple-300 dark:hover:border-purple-700'
-                }`}
-                title="Insights Hub"
-              >
-                <Map className="w-5 h-5" />
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setUiState(prev => ({ ...prev, showUpload: true }))}
-                className="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:border-green-300 dark:hover:border-green-700 transition-all duration-200"
-                title="Upload Files (⌘+U)"
-              >
-                <Upload className="w-5 h-5" />
-              </motion.button>
-            </div>
-          </motion.div>
-
-          {/* Search Results */}
-          <AnimatePresence>
-            {(currentQuery || results.length > 0 || isSearching) && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="space-y-6"
-              >
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6">
-                  <SearchResults
-                    results={results}
-                    totalResults={totalResults}
-                    processingTime={processingTime}
-                    model={model}
-                    query={currentQuery}
-                    isSearching={isSearching}
-                    viewMode={uiState.viewMode}
-                    isBackendConnected={isBackendConnected}
-                  />
-                  
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
-                    >
-                      <p className="text-red-800 dark:text-red-200 text-sm">
-                        <span className="font-medium">Search Error:</span> {error}
-                      </p>
-                    </motion.div>
-                  )}
+                          {/* Recent Searches */}
+                          {recentSearches.length > 0 && (
+                            <>
+                              <div className="px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Recent Searches</span>
+                                </div>
+                              </div>
+                              {recentSearches.slice(0, 3).map((search, index) => (
+                                <motion.button
+                                  key={index}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: (index + 3) * 0.1 }}
+                                  onClick={() => handleQuickSearch(search.query)}
+                                  className="w-full p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 text-left"
+                                >
+                                  <Clock className="w-4 h-4 text-slate-400" />
+                                  <span className="text-sm text-slate-700 dark:text-slate-300 truncate">
+                                    {search.query}
+                                  </span>
+                                  <span className="text-xs text-slate-400">
+                                    {new Date(search.lastUsed).toLocaleDateString()}
+                                  </span>
+                                </motion.button>
+                              ))}
+                            </>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+                {/* Action Buttons */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setUiState(prev => ({ ...prev, rightPanelOpen: !prev.rightPanelOpen }))}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    uiState.rightPanelOpen 
+                      ? 'bg-purple-500 border-purple-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-purple-300 dark:hover:border-purple-700'
+                  }`}
+                  title="Insights Hub"
+                >
+                  <Map className="w-5 h-5" />
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setUiState(prev => ({ ...prev, showUpload: true }))}
+                  className="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:border-green-300 dark:hover:border-green-700 transition-all duration-200"
+                  title="Upload Files (⌘+U)"
+                >
+                  <Upload className="w-5 h-5" />
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
 
         </div>
       </div>
