@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Simple API server for GenSpark AI Search frontend
+ * Simple API server for Grahmos AI Search frontend
  * Provides search endpoints with lightweight GPT OSS model integration
  */
 
@@ -255,7 +255,7 @@ async function startServer() {
     
     // Start HTTP server
     app.listen(PORT, () => {
-      console.log(`🚀 GenSpark AI Search API Server running on port ${PORT}`);
+      console.log(`🚀 Grahmos AI Search API Server running on port ${PORT}`);
       console.log(`📊 Model: ${modelConfig.defaultModel}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
       console.log(`🔍 Search endpoint: http://localhost:${PORT}/api/search`);

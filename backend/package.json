@@ -1,7 +1,7 @@
 {
-  "name": "genspark-ai-search-backend",
+  "name": "grahmos-ai-search-backend",
   "version": "1.0.0",
-  "description": "AI agent backend for GenSpark AI Search MVP",
+  "description": "AI agent backend for Grahmos AI Search MVP",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -74,7 +74,7 @@
     "offline",
     "semantic-search"
   ],
-  "author": "GenSpark AI Team",
+  "author": "Grahmos AI Team",
   "license": "PROPRIETARY",
   "engines": {
     "node": ">=18.0.0",

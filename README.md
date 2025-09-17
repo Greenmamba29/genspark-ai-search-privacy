@@ -1,4 +1,4 @@
-# GenSpark AI Search Engine
+# Grahmos AI Search Engine
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-Active%20Development-green.svg)
@@ -10,7 +10,7 @@ An advanced AI-powered search engine with intelligent document processing, multi
 ## 🏗️ Project Architecture
 
 ```
-GenSpark-AI-Search/
+Grahmos-AI-Search/
 ├── backend/                    # Node.js/TypeScript backend
 │   ├── src/
 │   │   ├── agents/            # AI Agent implementations
@@ -133,7 +133,7 @@ docker-compose --version
 ```bash
 # Clone repository
 git clone <repository-url>
-cd GenSpark-AI-Search
+cd Grahmos-AI-Search
 
 # Install backend dependencies
 cd backend
