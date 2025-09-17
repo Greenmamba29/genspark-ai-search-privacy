@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, X, File, Shield, CheckCircle2 } from 'lucide-react';
+import { Upload, X, File, CheckCircle2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 
 interface UploadedFile {
@@ -91,7 +91,7 @@ export default function FileUploadComponent() {
         <div className="mt-8">
           <h3 className="text-lg font-medium text-secondary-900 dark:text-secondary-100 mb-4">Uploads</h3>
           <div className="space-y-4">
-            {uploadedFiles.map(({ file, status, progress, error }) => (
+            {uploadedFiles.map(({ file, status, progress }) => (
               <div key={file.name} className="card p-4 flex items-center space-x-4">
                 <File className="w-8 h-8 text-secondary-500" />
                 <div className="flex-1">

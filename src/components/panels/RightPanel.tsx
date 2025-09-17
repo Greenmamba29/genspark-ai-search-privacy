@@ -1,13 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   TrendingUp,
   FileText,
-  Clock,
-  BarChart3,
-  Users,
-  Globe,
   Brain,
   Lightbulb,
   Target,
@@ -16,10 +12,8 @@ import {
   Calendar,
   Activity,
   Cpu,
-  Database,
   ChevronDown,
   ChevronRight,
-  Star,
   AlertCircle,
   CheckCircle,
   Info
@@ -42,14 +36,12 @@ interface InsightCard {
 }
 
 export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
-  const [activeSection, setActiveSection] = useState('insights');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   
   const {
     analytics,
     searchStats,
-    getPopularSearches,
-    getRecentSearches
+    getPopularSearches
   } = useSearchHistory();
 
   // Generate insights based on search patterns

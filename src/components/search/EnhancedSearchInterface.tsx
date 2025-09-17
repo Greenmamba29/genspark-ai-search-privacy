@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  Filter,
-  Grid,
-  List,
   Sparkles,
   Cpu,
   Menu,
   Map,
   Upload,
   X,
-  ChevronDown,
-  Star,
   Clock,
   Lightbulb,
   Zap,
@@ -42,7 +37,7 @@ interface SearchState {
 
 interface FilterState {
   type: string[];
-  dateRange?: { start: string; end: string };
+  dateRange?: { start?: Date; end?: Date };
   sizeRange?: { min: number; max: number };
   tags: string[];
   sortBy: 'relevance' | 'date' | 'size' | 'name';
@@ -81,7 +76,7 @@ export default function EnhancedSearchInterface() {
     activeCategory: 'all'
   });
 
-  const [filterState, setFilterState] = useState<FilterState>({
+  const [filterState] = useState<FilterState>({
     type: [],
     tags: [],
     sortBy: 'relevance',
@@ -98,20 +93,16 @@ export default function EnhancedSearchInterface() {
     model,
     query: currentQuery,
     isBackendConnected,
-    search,
-    setFilters
+    search
   } = useSearch();
 
   const {
-    searchHistory,
     saveSearch,
-    clearHistory,
     getPopularSearches
   } = useSearchHistory();
 
-  // Memoized computed values
-  const popularSearches = useMemo(() => getPopularSearches(5), [getPopularSearches]);
-  const recentSearches = useMemo(() => searchHistory.slice(0, 5), [searchHistory]);
+  // Memoized computed values  
+  const recentSearches = useMemo(() => getPopularSearches(5), [getPopularSearches]);
 
   // Enhanced search handler with debouncing and analytics
   const handleSearch = useCallback(async (queryOverride?: string) => {
@@ -146,11 +137,6 @@ export default function EnhancedSearchInterface() {
     }
   }, [searchState.query, filterState, uiState.activeCategory, search, saveSearch]);
 
-  // Enhanced filter handling
-  const handleFilterChange = useCallback((newFilters: Partial<FilterState>) => {
-    setFilterState(prev => ({ ...prev, ...newFilters }));
-    setFilters(newFilters as any);
-  }, [setFilters]);
 
   // Quick search suggestions with intelligent categorization
   const handleQuickSearch = useCallback((suggestion: string) => {
@@ -461,7 +447,7 @@ export default function EnhancedSearchInterface() {
                                   {search.query}
                                 </span>
                                 <span className="text-xs text-slate-400">
-                                  {new Date(search.timestamp).toLocaleDateString()}
+                                  {new Date(search.lastUsed).toLocaleDateString()}
                                 </span>
                               </motion.button>
                             ))}

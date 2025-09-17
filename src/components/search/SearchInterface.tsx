@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, Map, Upload } from 'lucide-react';
+import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, Map, Upload, X } from 'lucide-react';
 import { useSearch } from '../../hooks/useSearch';
 import SearchResults from './SearchResults';
 import LeftPanel from '../panels/LeftPanel';

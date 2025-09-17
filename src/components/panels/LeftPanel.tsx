@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings,
   Clock,
-  TrendingUp,
-  Filter,
   Bookmark,
   Download,
   Upload,
@@ -15,14 +13,7 @@ import {
   Search,
   BarChart3,
   Calendar,
-  Tag,
-  Sliders,
-  Brain,
-  Cpu,
-  Database,
   Activity,
-  Users,
-  Globe,
   Moon,
   Sun,
   Monitor,
@@ -35,22 +26,12 @@ interface LeftPanelProps {
   onClose: () => void;
 }
 
-const PANEL_SECTIONS = [
-  { id: 'recent', label: 'Recent Searches', icon: Clock },
-  { id: 'filters', label: 'Advanced Filters', icon: Filter },
-  { id: 'analytics', label: 'Search Analytics', icon: BarChart3 },
-  { id: 'bookmarks', label: 'Saved Searches', icon: Bookmark },
-  { id: 'settings', label: 'Settings', icon: Settings }
-];
-
 export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
-  const [activeSection, setActiveSection] = useState('recent');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['recent', 'filters']));
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [savedSearches, setSavedSearches] = useState<Array<{ id: string; name: string; query: string; filters?: any }>>([]);
 
   const {
-    searchHistory,
     analytics,
     getPopularSearches,
     getRecentSearches,
