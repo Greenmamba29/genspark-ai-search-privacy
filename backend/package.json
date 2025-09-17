@@ -15,7 +15,8 @@
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
     "docker:build": "docker build -t genspark-backend .",
     "setup-mcps": "./scripts/setup-mcps.sh",
-    "test-mcps": "node dist/mcps/test-mcps.js",
+    "test-mcps": "./scripts/test-mcp-simple.sh",
+    "mcp-demo": "node scripts/mcp-demo.js",
     "mcp-status": "node -e \"import('./dist/mcps/MCPManager.js').then(m => new m.MCPManager().getMCPStatus()).then(console.log)\""
   },
   "dependencies": {

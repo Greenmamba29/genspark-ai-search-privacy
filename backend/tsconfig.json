@@ -52,12 +52,10 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "src/agents/file-processing/**",
-    "src/agents/vector-embedding/**",
-    "src/ai/**",
-    "src/privacy/**",
-    "src/services/**",
-    "src/sync/**"
+    "src/mcps/filesystem/filesystem-mcp-server/**/*",
+    "src/mcps/search/file-search-mcp/**/*",
+    "src/mcps/search/mcp-filesystem-server-ai-enhanced/**/*",
+    "src/mcps/nlp-models/seta-mcp/**/*"
   ],
   "ts-node": {
     "esm": true

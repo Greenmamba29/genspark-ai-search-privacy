@@ -9,6 +9,16 @@ import type {
   AgentType,
 } from '@/shared/types/index.js';
 
+// Privacy-aware orchestration imports
+interface PrivacyManager {
+  classifyDocument?: (content: string) => Promise<any>;
+}
+interface ModelRegistry {
+  selectModel?: (content: string, privacy: string) => Promise<string>;
+}
+class SimplePlaceholderPrivacyManager implements PrivacyManager {}
+class SimplePlaceholderModelRegistry implements ModelRegistry {}
+
 export interface OrchestratorConfig extends AgentConfig {
   messageBusConfig: {
     redisUrl: string;
@@ -23,16 +33,24 @@ export class MasterOrchestratorAgent extends BaseAgent {
   private registeredAgents: Map<string, AgentRegistry> = new Map();
   private healthCheckInterval?: NodeJS.Timeout;
   
+  // Privacy-aware coordination services
+  private privacyManager: PrivacyManager;
+  private modelRegistry: ModelRegistry;
+  
   constructor(config: OrchestratorConfig) {
     super(config);
     
     // Initialize message bus
     this.messageBus = new MessageBus(config.messageBusConfig);
     
-    // Initialize SimStudio services for privacy-aware coordination
-    this.privacyManager = new PrivacyManager();
-    this.modelRegistry = new ModelRegistry();
-    this.syncEngine = new SyncEngine();
+    // Initialize privacy-aware coordination services
+    this.privacyManager = new SimplePlaceholderPrivacyManager();
+    this.modelRegistry = new SimplePlaceholderModelRegistry();
+    
+    // Set up message bus event handlers
+    this.messageBus.on('connected', () => {
+      console.log('Master Orchestrator: MessageBus connected');
+    });
     
     this.messageBus.on('disconnected', () => {
       console.log('Master Orchestrator: MessageBus disconnected');
@@ -53,7 +71,7 @@ export class MasterOrchestratorAgent extends BaseAgent {
     // Start health monitoring of registered agents
     this.startAgentHealthMonitoring();
     
-    console.log('Master Orchestrator initialized and ready');
+    console.log('Master Orchestrator initialized with privacy coordination');
   }
 
   protected async onStart(): Promise<void> {

@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import * as process from 'process';
 
 export interface MCPConfig {
   version: string;
@@ -50,7 +51,7 @@ export class MCPManager extends EventEmitter {
     try {
       console.log(`🚀 Starting MCP: ${name}`);
       
-      const process = spawn('node', [instance.path], {
+      const childProcess = spawn('node', [instance.path], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: join(__dirname, '../..'),
         env: {
@@ -59,18 +60,18 @@ export class MCPManager extends EventEmitter {
         }
       });
 
-      process.on('error', (error) => {
+      childProcess.on('error', (error: Error) => {
         console.error(`❌ MCP ${name} error:`, error);
         this.emit('mcp_error', name, error);
       });
 
-      process.on('exit', (code) => {
+      childProcess.on('exit', (code: number | null) => {
         console.log(`🛑 MCP ${name} exited with code ${code}`);
         this.processes.delete(name);
         this.emit('mcp_exit', name, code);
       });
 
-      this.processes.set(name, process);
+      this.processes.set(name, childProcess);
       this.emit('mcp_started', name);
       
     } catch (error) {
@@ -107,7 +108,7 @@ export class MCPManager extends EventEmitter {
       };
 
       process.stdout?.on('data', responseHandler);
-      process.stdin.write(message + '\n');
+      process.stdin?.write(message + '\n');
     });
   }
 

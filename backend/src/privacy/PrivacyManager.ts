@@ -282,6 +282,13 @@ export class PrivacyManager {
   }
 
   /**
+   * Get current privacy configuration
+   */
+  getConfiguration(): PrivacyConfiguration {
+    return { ...this.config };
+  }
+
+  /**
    * Update privacy configuration
    */
   async updateConfiguration(updates: Partial<PrivacyConfiguration>): Promise<void> {
@@ -588,6 +595,18 @@ export class PrivacyManager {
 
 class DataClassifier {
   async classify(data: any): Promise<DataClassification> {
+    // Handle null/undefined data gracefully
+    if (data === null || data === undefined) {
+      return {
+        sensitivity: 'PUBLIC',
+        containsPII: false,
+        containsCredentials: false,
+        containsProprietaryData: false,
+        requiresEncryption: false,
+        allowCloudProcessing: true
+      };
+    }
+    
     const text = typeof data === 'string' ? data : JSON.stringify(data);
     
     // Simple classification based on content patterns
@@ -638,6 +657,10 @@ class DataClassifier {
   }
 
   private detectProprietaryData(text: string): boolean {
+    if (!text || typeof text !== 'string') {
+      return false;
+    }
+    
     const proprietaryKeywords = [
       'confidential', 'proprietary', 'internal use only', 
       'trade secret', 'patent pending', 'copyright'

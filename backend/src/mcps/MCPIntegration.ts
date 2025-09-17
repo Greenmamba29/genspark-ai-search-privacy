@@ -1,5 +1,20 @@
 import { MCPManager } from './MCPManager.js';
-import type { FileContent, SearchQuery, SearchResult } from '../shared/types/index.js';
+import type { SearchResult } from '../shared/types/index.js';
+
+// Define interfaces for MCP operations
+interface FileContent {
+  path: string;
+  content: string;
+  type: string;
+  size: number;
+  extracted_at: number;
+}
+
+interface SearchQuery {
+  text: string;
+  path?: string;
+  limit?: number;
+}
 
 export class MCPIntegration {
   private mcpManager: MCPManager;
