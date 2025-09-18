@@ -1,5 +1,5 @@
 /**
- * Model provider types adapted from SimStudio for GenSpark integration
+ * Model provider types adapted from SimStudio for Grahmos integration
  * Enhanced with offline capabilities and local processing support
  */
 

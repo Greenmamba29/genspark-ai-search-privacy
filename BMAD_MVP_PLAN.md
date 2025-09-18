@@ -1,4 +1,4 @@
-# GenSpark AI Search MVP - BMAD Strategic Plan
+# Grahmos AI Search MVP - BMAD Strategic Plan
 
 ## 🎯 Executive Summary
 
@@ -61,7 +61,7 @@ Transform the existing UI framework into a fully functional AI-powered offline s
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    GenSpark AI Search MVP                   │
+│                    Grahmos AI Search MVP                   │
 ├─────────────────────────────────────────────────────────────┤
 │                     Frontend Layer                         │
 │  React + TypeScript + Tailwind (Existing)                  │

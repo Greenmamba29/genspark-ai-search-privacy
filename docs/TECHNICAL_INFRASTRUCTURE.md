@@ -1,8 +1,8 @@
-# Technical Infrastructure Requirements - GenSpark AI Search MVP
+# Technical Infrastructure Requirements - Grahmos AI Search MVP
 
 ## 🏗️ Infrastructure Overview
 
-This document specifies the complete technical infrastructure required to build and deploy the GenSpark AI Search MVP. It covers local AI models, vector databases, file processing pipelines, hardware requirements, and deployment architecture.
+This document specifies the complete technical infrastructure required to build and deploy the Grahmos AI Search MVP. It covers local AI models, vector databases, file processing pipelines, hardware requirements, and deployment architecture.
 
 ---
 
@@ -606,7 +606,7 @@ Distributed Setup:
   - Users: Unlimited (load balancing)
 ```
 
-This technical infrastructure specification provides the complete foundation needed to build, deploy, and scale the GenSpark AI Search MVP while maintaining optimal performance and reliability.
+This technical infrastructure specification provides the complete foundation needed to build, deploy, and scale the Grahmos AI Search MVP while maintaining optimal performance and reliability.
 
 <citations>
 <document>

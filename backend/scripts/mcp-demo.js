@@ -2,7 +2,7 @@
 
 /**
  * MCP Integration Demonstration
- * Shows how to use the installed MCP servers with GenSpark AI Search
+ * Shows how to use the installed MCP servers with Grahmos AI Search
  */
 
 import fs from 'fs';
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🚀 GenSpark AI Search - MCP Integration Demo');
+console.log('🚀 Grahmos AI Search - MCP Integration Demo');
 console.log('='.repeat(50));
 
 // Load MCP configuration
@@ -133,7 +133,7 @@ function showMCPStatus() {
 
 // Integration benefits explanation
 function showIntegrationBenefits() {
-  console.log('\n💡 MCP Integration Benefits for GenSpark AI Search:');
+  console.log('\n💡 MCP Integration Benefits for Grahmos AI Search:');
   console.log('='.repeat(55));
   
   const benefits = [
@@ -182,7 +182,7 @@ async function main() {
   showNextSteps();
   
   console.log('\n🎉 MCP Integration Demo Complete!');
-  console.log('GenSpark AI Search is ready for enhanced capabilities with MCP servers.');
+  console.log('Grahmos AI Search is ready for enhanced capabilities with MCP servers.');
 }
 
 // Execute the demo

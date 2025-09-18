@@ -43,7 +43,7 @@
   },
   "database": {
     "type": "sqlite",
-    "path": "./data/genspark.db",
+    "path": "./data/grahmos.db",
     "backup_enabled": true,
     "backup_interval": 86400000
   },

@@ -16,9 +16,15 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle,
-  Info
+  Info,
+  Download,
+  Settings,
+  HardDrive,
+  Monitor
 } from 'lucide-react';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
+import { useModels } from '../../contexts/ModelContext';
+import ModelDownloadModal from '../ai/ModelDownloadModal';
 
 interface RightPanelProps {
   isOpen: boolean;
@@ -37,12 +43,22 @@ interface InsightCard {
 
 export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<'insights' | 'models' | 'settings'>('insights');
+  const [showModelDownload, setShowModelDownload] = useState(false);
   
   const {
     analytics,
     searchStats,
     getPopularSearches
   } = useSearchHistory();
+
+  const {
+    state: modelState,
+    setCurrentModel,
+    downloadModel,
+    getCurrentModelInfo,
+    getInstalledModels
+  } = useModels();
 
   // Generate insights based on search patterns
   const insights = useMemo((): InsightCard[] => {
@@ -217,20 +233,63 @@ export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
             className="fixed right-0 top-0 h-full w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-slate-200 dark:border-slate-700 z-50 overflow-hidden flex flex-col shadow-2xl"
           >
             {/* Header */}
-            <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Insights Hub</h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    AI-powered search analytics
-                  </p>
+            <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+              <div className="p-6 pb-0">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Control Center</h2>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      {activeTab === 'insights' && 'AI-powered search analytics'}
+                      {activeTab === 'models' && 'Local AI model management'}
+                      {activeTab === 'settings' && 'System configuration'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-slate-500" />
+                  </button>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-slate-500" />
-                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="px-6 pb-4">
+                <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setActiveTab('insights')}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      activeTab === 'insights'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    <span>Insights</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('models')}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      activeTab === 'models'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Brain className="w-4 h-4" />
+                    <span>Models</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      activeTab === 'settings'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Settings</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -238,7 +297,10 @@ export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 space-y-6">
 
-                {/* Quick Stats Overview */}
+                {/* Tab Content */}
+                {activeTab === 'insights' && (
+                  <>
+                    {/* Quick Stats Overview */}
                 <div className="grid grid-cols-2 gap-4">
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -390,6 +452,152 @@ export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
                     })}
                   </div>
                 </div>
+                  </>
+                )}
+
+                {/* Models Tab */}
+                {activeTab === 'models' && (
+                  <>
+                    {/* Current Model */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+                          <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          <span>Active Model</span>
+                        </h3>
+                      </div>
+                      
+                      {getCurrentModelInfo() ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                              <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900 dark:text-white">
+                                {getCurrentModelInfo()?.displayName}
+                              </p>
+                              <p className="text-sm text-blue-600 dark:text-blue-400">
+                                {getCurrentModelInfo()?.size} • {getCurrentModelInfo()?.capabilities.join(', ')}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {getCurrentModelInfo()?.description}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-slate-600 dark:text-slate-400">No model selected</p>
+                      )}
+                    </div>
+
+                    {/* Installed Models */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+                          <HardDrive className="w-5 h-5 text-green-500" />
+                          <span>Installed Models</span>
+                        </h3>
+                        <button
+                          onClick={() => setShowModelDownload(true)}
+                          className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {getInstalledModels().map((model) => (
+                          <motion.div
+                            key={model.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                              modelState.currentModel === model.id
+                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600'
+                            }`}
+                            onClick={() => setCurrentModel(model.id)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                                <Brain className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <p className="font-medium text-slate-900 dark:text-white">
+                                    {model.displayName}
+                                  </p>
+                                  {modelState.currentModel === model.id && (
+                                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs rounded-full">
+                                      Active
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                  {model.size} • {model.capabilities.slice(0, 2).join(', ')}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                        
+                        {getInstalledModels().length === 0 && (
+                          <div className="text-center py-8">
+                            <HardDrive className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                            <p className="text-slate-600 dark:text-slate-400 text-sm">
+                              No models installed yet
+                            </p>
+                            <button
+                              onClick={() => setShowModelDownload(true)}
+                              className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                            >
+                              Download Models
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Settings Tab */}
+                {activeTab === 'settings' && (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 rounded-xl p-4">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-center space-x-2">
+                        <Settings className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                        <span>System Configuration</span>
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
+                          <div>
+                            <p className="font-medium text-slate-900 dark:text-white">Auto-model switching</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Automatically select best model for query type</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
+                          <div>
+                            <p className="font-medium text-slate-900 dark:text-white">Background processing</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Keep models loaded for faster response</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* System Info */}
                 <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -436,6 +644,18 @@ export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
               </div>
             </div>
           </motion.div>
+          
+          {/* Model Download Modal */}
+          <ModelDownloadModal
+            isOpen={showModelDownload}
+            onClose={() => setShowModelDownload(false)}
+            onModelSelect={(modelId) => {
+              downloadModel(modelId)
+              setShowModelDownload(false)
+            }}
+            installedModels={modelState.installedModels}
+            currentModel={modelState.currentModel}
+          />
         </>
       )}
     </AnimatePresence>

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🧪 Testing MCP integrations for GenSpark AI Search..."
+echo "🧪 Testing MCP integrations for Grahmos AI Search..."
 
 # Ensure we're in the backend directory
 cd "$(dirname "$0")/.."

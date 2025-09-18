@@ -165,20 +165,19 @@ export default function SearchSuggestions({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.95 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-secondary-800 rounded-xl border border-secondary-200 dark:border-secondary-700 shadow-2xl z-50 overflow-hidden"
+        className="absolute top-full left-0 right-0 mt-3 bg-white/98 dark:bg-slate-800/98 rounded-xl border border-gray-200 dark:border-gray-600 shadow-2xl z-[100] overflow-hidden backdrop-blur-md"
         style={{ 
-          backdropFilter: 'blur(10px)',
-          background: 'rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
         }}
       >
         {/* Header */}
-        <div className="px-4 py-3 border-b border-secondary-100 dark:border-secondary-700">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-sm text-secondary-600 dark:text-secondary-400">
-              <Sparkles className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+              <Sparkles className="w-4 h-4 text-purple-500" />
               <span>AI-powered suggestions with {model.split('/').pop()}</span>
             </div>
-            <div className="text-xs text-secondary-500 dark:text-secondary-500">
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
               {isBackendConnected ? 'Local AI' : 'Demo Mode'}
             </div>
           </div>
@@ -187,7 +186,7 @@ export default function SearchSuggestions({
         {/* Suggestions List */}
         <div 
           ref={listRef}
-          className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-secondary-300 dark:scrollbar-thumb-secondary-600 scrollbar-track-transparent"
+          className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
         >
           {suggestions.map((suggestion, index) => (
             <motion.div
@@ -196,10 +195,10 @@ export default function SearchSuggestions({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.03 }}
               className={`
-                flex items-center space-x-3 px-4 py-3 cursor-pointer transition-all duration-150
+                flex items-center space-x-3 px-4 py-3 cursor-pointer transition-all duration-200 border-l-4
                 ${index === selectedIndex 
-                  ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 shadow-sm' 
-                  : 'hover:bg-secondary-50 dark:hover:bg-secondary-700/50'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 shadow-sm' 
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-transparent hover:border-gray-200 dark:hover:border-gray-600'
                 }
               `}
               onClick={() => onSelect(suggestion.text)}
@@ -215,7 +214,7 @@ export default function SearchSuggestions({
                       text-sm truncate
                       ${index === selectedIndex 
                         ? 'text-blue-700 dark:text-blue-300 font-medium' 
-                        : 'text-secondary-700 dark:text-secondary-300'
+                        : 'text-gray-700 dark:text-gray-300'
                       }
                     `}
                   >
@@ -247,10 +246,10 @@ export default function SearchSuggestions({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 bg-secondary-50 dark:bg-secondary-800 border-t border-secondary-100 dark:border-secondary-700">
-          <div className="flex items-center justify-between text-xs text-secondary-500 dark:text-secondary-500">
+        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Use ↑↓ to navigate, Enter to select</span>
-            <span>Powered by Grahmos AI</span>
+            <span className="text-blue-600 dark:text-blue-400 font-medium">Powered by Grahmos AI</span>
           </div>
         </div>
       </motion.div>

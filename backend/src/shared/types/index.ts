@@ -1,4 +1,4 @@
-// Core Types for GenSpark AI Search Agent Framework
+// Core Types for Grahmos AI Search Agent Framework
 
 export interface AgentMessage {
   id: string;

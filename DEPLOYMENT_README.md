@@ -1,4 +1,4 @@
-# GenSpark AI Search - Netlify Deployment Guide
+# Grahmos AI Search - Netlify Deployment Guide
 
 **Deployment Date**: September 17, 2025  
 **Version**: 1.1.0 (Sprint 1 Complete)
@@ -7,7 +7,7 @@
 
 ## 🚀 **Deployment Checklist**
 
-This guide provides the final steps for deploying the GenSpark AI Search application to Netlify. All development and testing for Sprint 1 have been completed, and the system is ready for production.
+This guide provides the final steps for deploying the Grahmos AI Search application to Netlify. All development and testing for Sprint 1 have been completed, and the system is ready for production.
 
 ### **1. Final System Review**
 

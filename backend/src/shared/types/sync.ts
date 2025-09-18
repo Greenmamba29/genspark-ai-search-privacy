@@ -1,6 +1,6 @@
 /**
  * Synchronization types for offline-first data management
- * Inspired by SimStudio's sync capabilities and enhanced for GenSpark
+ * Inspired by SimStudio's sync capabilities and enhanced for Grahmos
  */
 
 export type SyncOperationType = 

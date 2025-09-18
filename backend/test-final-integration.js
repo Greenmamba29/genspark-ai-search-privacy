@@ -221,7 +221,7 @@ async function main() {
   console.log('6. 🔄 Ready for production testing with real documents');
   
   console.log('\n🎉 SimStudio Integration Complete!');
-  console.log('The enhanced offline capabilities are now available in GenSpark-AI-Search.');
+  console.log('The enhanced offline capabilities are now available in Grahmos-AI-Search.');
   
   return allFeaturesWork;
 }

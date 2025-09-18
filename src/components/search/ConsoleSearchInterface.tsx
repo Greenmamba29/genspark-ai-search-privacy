@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, Sparkles, Cpu, Upload, X, BarChart3, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRealTimeSearch } from '../../hooks/useRealTimeSearch'
+import { useModels } from '../../contexts/ModelContext'
 import GoogleStyleSearchResults from './GoogleStyleSearchResults'
 import SearchSuggestions from './SearchSuggestions'
 import EnhancedLeftPanel from '../panels/EnhancedLeftPanel'
@@ -34,6 +35,8 @@ export default function ConsoleSearchInterface() {
     clearResults,
     addToHistory
   } = useRealTimeSearch(300) // 300ms debounce
+
+  const { getCurrentModelInfo } = useModels()
 
   // Handle real-time search as user types
   useEffect(() => {
@@ -169,10 +172,10 @@ export default function ConsoleSearchInterface() {
                     ) : (
                       <Sparkles className="w-4 h-4 text-yellow-500" />
                     )}
-                    <span>{model.split('/').pop() || 'Local AI'}</span>
+                    <span>{getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'}</span>
                   </div>
                   <span>•</span>
-                  <span>{isBackendConnected ? 'Local Processing' : 'Demo Mode'}</span>
+                  <span>{isBackendConnected ? 'Local AI' : 'Demo Mode'}</span>
                 </div>
               </motion.div>
             )}
@@ -349,14 +352,16 @@ export default function ConsoleSearchInterface() {
             </div>
 
             {/* Search Suggestions - Positioned Above Search Bar */}
-            <div className="absolute bottom-full left-0 right-0 mb-2">
-              <SearchSuggestions
-                isVisible={showSuggestions}
-                searchQuery={searchQuery}
-                onSelect={handleSuggestionSelect}
-                model={model}
-                isBackendConnected={isBackendConnected}
-              />
+            <div className="absolute bottom-full left-0 right-0 mb-4 z-[110]">
+              <div className="relative">
+                <SearchSuggestions
+                  isVisible={showSuggestions}
+                  searchQuery={searchQuery}
+                  onSelect={handleSuggestionSelect}
+                  model={model}
+                  isBackendConnected={isBackendConnected}
+                />
+              </div>
             </div>
           </div>
 
@@ -364,11 +369,11 @@ export default function ConsoleSearchInterface() {
           <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
             <div className="flex items-center space-x-4">
               {isSearching ? (
-                <span>AI is processing your search using {model.split('/').pop()}...</span>
+                <span>Searching with {getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'} • Local AI</span>
               ) : isBackendConnected ? (
-                <span>Ready to search with {model.split('/').pop()} • Local AI Processing</span>
+                <span>Ready to search with {getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'} • Local AI</span>
               ) : (
-                <span>Running in demonstration mode</span>
+                <span>Running with {getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'} • Demo Mode</span>
               )}
             </div>
             

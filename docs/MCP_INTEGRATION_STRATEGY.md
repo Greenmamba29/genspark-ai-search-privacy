@@ -1,8 +1,8 @@
-# MCP Integration Strategy - GenSpark AI Search MVP
+# MCP Integration Strategy - Grahmos AI Search MVP
 
 ## 🔌 Model Context Protocol Overview
 
-This document outlines the complete MCP (Model Context Protocol) integration strategy for the GenSpark AI Search MVP. MCPs provide standardized interfaces between our AI agents and various backend services, ensuring modularity, scalability, and maintainability.
+This document outlines the complete MCP (Model Context Protocol) integration strategy for the Grahmos AI Search MVP. MCPs provide standardized interfaces between our AI agents and various backend services, ensuring modularity, scalability, and maintainability.
 
 ---
 
@@ -737,7 +737,7 @@ class MCPHealthMonitor {
 }
 ```
 
-This MCP integration strategy provides a robust, modular foundation for the GenSpark AI Search MVP, ensuring scalability, maintainability, and optimal performance across all AI agent communications and backend service integrations.
+This MCP integration strategy provides a robust, modular foundation for the Grahmos AI Search MVP, ensuring scalability, maintainability, and optimal performance across all AI agent communications and backend service integrations.
 
 <citations>
 <document>

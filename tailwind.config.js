@@ -58,12 +58,17 @@ export default {
         '88': '22rem',
         '128': '32rem',
       },
+      scale: {
+        '102': '1.02',
+      },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
         'glow': 'glow 2s ease-in-out infinite alternate',
+        'bounce': 'bounce 1s infinite',
+        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
@@ -85,6 +90,20 @@ export default {
         glow: {
           '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
           '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' },
+        },
+        bounce: {
+          '0%, 20%, 53%, 80%, 100%': {
+            transform: 'translate3d(0,0,0)'
+          },
+          '40%, 43%': {
+            transform: 'translate3d(0, -30px, 0)'
+          },
+          '70%': {
+            transform: 'translate3d(0, -15px, 0)'
+          },
+          '90%': {
+            transform: 'translate3d(0, -4px, 0)'
+          }
         },
       },
       backdropBlur: {

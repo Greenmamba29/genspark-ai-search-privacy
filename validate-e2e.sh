@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🎯 GenSpark AI Search - P1.1 Validation"
+echo "🎯 Grahmos AI Search - P1.1 Validation"
 echo "======================================="
 
 echo "✅ Testing Backend Health..."

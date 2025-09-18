@@ -1,4 +1,4 @@
-# GenSpark AI Search Engine - Backend
+# Grahmos AI Search Backend
 
 ## 🚀 Overview
 

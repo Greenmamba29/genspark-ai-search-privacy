@@ -318,7 +318,7 @@ setTimeout(() => {
     console.log('   • Performance benchmarks met');
     console.log('   • Security headers configured');
     
-    console.log('\\n✨ Your privacy-first GenSpark AI system is production-ready!');
+    console.log('\\n✨ Your privacy-first Grahmos AI system is production-ready!');
     process.exit(0);
   } else {
     console.log(`\\n⚠️  ${testsFailed} tests failed. Review the issues above before deployment.`);

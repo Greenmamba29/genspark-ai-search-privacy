@@ -52,7 +52,7 @@ If you need to manually deploy:
 1. **Upload the dist folder** to Netlify:
    ```bash
    # The dist folder is ready at:
-   /Users/paco/Downloads/GenSpark-AI-Search/dist/
+   /Users/paco/Downloads/Grahmos-AI-Search/dist/
    ```
 
 2. **Drag and drop** the entire `dist` folder to Netlify dashboard
@@ -66,7 +66,7 @@ Instead of the basic interface, users will now experience:
 
 #### **🌟 Modern Landing Experience**
 - Stunning gradient background (slate → blue → indigo)
-- "GenSpark AI Search" with animated gradient text
+- "Grahmos AI Search" with animated gradient text
 - Interactive search categories with beautiful icons
 - Enhanced search bar with AI status indicators
 
@@ -115,7 +115,7 @@ After deployment, verify these features work:
 
 ## 🎊 **Deployment Complete!**
 
-Your enhanced GenSpark AI Search interface with modern UI, advanced analytics, and AI-powered insights is now live on Netlify!
+Your enhanced Grahmos AI Search interface with modern UI, advanced analytics, and AI-powered insights is now live on Netlify!
 
 **Status**: ✅ **DEPLOYED**  
 **Build**: ✅ **SUCCESS**  

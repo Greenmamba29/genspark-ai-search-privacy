@@ -13,13 +13,13 @@ The main issue you encountered has been **FIXED**. The problem was that `App.tsx
 
 ### Option 1: Use Our Deployment Script
 ```bash
-cd /Users/paco/Downloads/GenSpark-AI-Search
+cd /Users/paco/Downloads/Grahmos-AI-Search
 ./deploy-enhanced.sh
 ```
 
 ### Option 2: Manual Deployment
 ```bash
-cd /Users/paco/Downloads/GenSpark-AI-Search
+cd /Users/paco/Downloads/Grahmos-AI-Search
 npm install
 npm run dev
 ```
@@ -30,7 +30,7 @@ Instead of the basic search interface you saw in the screenshots, you'll now get
 
 ### **🌟 Modern Search Interface**
 - Beautiful gradient background (slate → blue → indigo)
-- "GenSpark AI Search" title with gradient text effect
+- "Grahmos AI Search" title with gradient text effect
 - Search categories: All Files, Documents, Code, Data, Images
 - Enhanced search bar with AI indicators
 - Smart suggestions dropdown with recent history

@@ -5,10 +5,25 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Grahmos AI - Advanced offline search tool powered by AI" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Grahmos AI Search</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      // Prevent FOUC by applying theme class immediately
+      (function() {
+        const theme = localStorage.getItem('grahmos.theme') || 'system'
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        const isDark = theme === 'dark' || (theme === 'system' && systemDark)
+        
+        document.documentElement.classList.add(isDark ? 'dark' : 'light')
+        document.querySelector('meta[name="theme-color"]').setAttribute(
+          'content', 
+          isDark ? '#0f172a' : '#ffffff'
+        )
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

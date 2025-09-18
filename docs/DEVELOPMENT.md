@@ -1,6 +1,6 @@
 # Development Guidelines
 
-This document outlines development practices, coding standards, and workflow procedures for the GenSpark AI Search Engine project.
+This document outlines development practices, coding standards, and workflow procedures for the Grahmos AI Search Engine project.
 
 ## 🏗️ Project Architecture
 

@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Grid, List, FolderPlus, Upload, Shield, Clock, FileText, Image, Video, Code } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Grid, List, FolderPlus, Upload, Shield, Clock, FileText, Image, Video, Code, Filter, Sidebar } from 'lucide-react'
 import PrivacyControls, { PRIVACY_LEVELS } from '../privacy/PrivacyControls'
+import FolderManager from './FolderManager'
 
 // Mock file data with privacy classifications
 const MOCK_FILES = [
@@ -105,62 +106,245 @@ function formatDate(date: Date): string {
 }
 
 export default function FileManager() {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  // User preferences with localStorage persistence
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    return (localStorage.getItem('fileManager.viewMode') as 'grid' | 'list') || 'grid'
+  })
   const [selectedPrivacyLevel, setSelectedPrivacyLevel] = useState('internal')
   const [selectedModel, setSelectedModel] = useState('hybrid-local-cloud')
   const [, setShowUploadModal] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [showFolderSidebar, setShowFolderSidebar] = useState(true)
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [files] = useState(MOCK_FILES) // In real app, this would come from API
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size' | 'type'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  // Persist view mode preference
+  useEffect(() => {
+    localStorage.setItem('fileManager.viewMode', viewMode)
+  }, [viewMode])
+
+  // Filter and sort files
+  const filteredFiles = files
+    .filter(file => {
+      if (searchTerm) {
+        return file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               file.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      }
+      return true
+    })
+    .sort((a, b) => {
+      let aValue, bValue
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          break
+        case 'date':
+          aValue = a.lastModified.getTime()
+          bValue = b.lastModified.getTime()
+          break
+        case 'size':
+          aValue = a.size
+          bValue = b.size
+          break
+        case 'type':
+          aValue = a.type
+          bValue = b.type
+          break
+        default:
+          return 0
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+
+  // Handle folder operations
+  const handleFolderCreate = (parentId: string | null, name: string) => {
+    console.log('Creating folder:', { parentId, name })
+    // TODO: Integrate with backend API
+  }
+
+  const handleFolderSelect = (folder: any) => {
+    setSelectedFolderId(folder.id)
+    console.log('Selected folder:', folder)
+    // TODO: Filter files by folder
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-            Privacy-Aware File Management
-          </h1>
-          <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-            Organize files with automatic privacy classification and secure processing
-          </p>
+    <div className="flex h-screen bg-secondary-50 dark:bg-secondary-900">
+      {/* Folder Sidebar */}
+      {showFolderSidebar && (
+        <div className="w-80 bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 flex flex-col">
+          <FolderManager
+            selectedFolderId={selectedFolderId || undefined}
+            onFolderSelect={handleFolderSelect}
+            onFolderCreate={handleFolderCreate}
+            onFolderRename={(folderId, newName) => console.log('Rename folder:', folderId, newName)}
+            onFolderDelete={(folderId) => console.log('Delete folder:', folderId)}
+          />
         </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-white dark:bg-secondary-800 border-b border-secondary-200 dark:border-secondary-700 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowFolderSidebar(!showFolderSidebar)}
+                className="p-2 rounded-lg text-secondary-500 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors duration-200"
+                title="Toggle folder sidebar"
+              >
+                <Sidebar className="w-5 h-5" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                  Privacy-Aware File Management
+                </h1>
+                <p className="text-secondary-600 dark:text-secondary-400 mt-1">
+                  Organize files with automatic privacy classification and secure processing
+                </p>
+              </div>
+            </div>
         
-        <div className="flex items-center space-x-4">
-          <button className="btn-secondary flex items-center space-x-2">
-            <FolderPlus className="w-4 h-4" />
-            <span>New Folder</span>
-          </button>
+            <div className="flex items-center space-x-4">
+              <button className="btn-secondary flex items-center space-x-2">
+                <FolderPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">New Folder</span>
+              </button>
           
-          <button 
-            onClick={() => setShowUploadModal(true)}
-            className="btn-primary btn-glow flex items-center space-x-2"
-          >
-            <Upload className="w-4 h-4" />
-            <span>Smart Upload</span>
-          </button>
+              <button 
+                onClick={() => setShowUploadModal(true)}
+                className="btn-primary btn-glow flex items-center space-x-2"
+              >
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Smart Upload</span>
+              </button>
           
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-colors duration-200 ${
-                viewMode === 'grid'
-                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                  : 'text-secondary-500 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800'
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-colors duration-200 ${
-                viewMode === 'list'
-                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                  : 'text-secondary-500 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  showFilters
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-md'
+                    : 'text-secondary-500 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800'
+                }`}
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+          
+              <div className="flex items-center bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1 transition-all duration-200">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    viewMode === 'grid'
+                      ? 'bg-white dark:bg-secondary-700 text-primary-600 dark:text-primary-400 shadow-sm scale-105'
+                      : 'text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 hover:scale-102'
+                  }`}
+                  aria-label="Grid view"
+                >
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    viewMode === 'list'
+                      ? 'bg-white dark:bg-secondary-700 text-primary-600 dark:text-primary-400 shadow-sm scale-105'
+                      : 'text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 hover:scale-102'
+                  }`}
+                  aria-label="List view"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Enhanced Filters Panel */}
+        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          showFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          <div className="glass rounded-lg p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Advanced Filters</h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="text-secondary-500 dark:text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                  Search Files
+                </label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name or tags..."
+                  className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                  Sort By
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'name' | 'date' | 'size' | 'type')}
+                  className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="name">Name</option>
+                  <option value="date">Date Modified</option>
+                  <option value="size">File Size</option>
+                  <option value="type">File Type</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                  Order
+                </label>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                  className="w-full px-3 py-2 text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+                </select>
+              </div>
+              
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSortBy('date')
+                    setSortOrder('desc')
+                  }}
+                  className="btn-secondary text-sm px-3 py-2"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
       {/* Privacy Controls */}
       <PrivacyControls
@@ -170,21 +354,29 @@ export default function FileManager() {
         onModelChange={setSelectedModel}
       />
 
-      {/* File Statistics */}
+      {/* Enhanced File Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {PRIVACY_LEVELS.map((level) => {
-          const count = files.filter(f => f.privacyLevel === level.id).length;
+          const count = filteredFiles.filter(f => f.privacyLevel === level.id).length;
+          const totalCount = files.filter(f => f.privacyLevel === level.id).length;
           const IconComponent = level.icon;
           
           return (
-            <div key={level.id} className="card p-4">
+            <div key={level.id} className="card p-4 hover:shadow-md transition-all duration-200 group">
               <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${level.color}`}>
-                  <IconComponent className="w-4 h-4" />
+                <div className={`p-3 rounded-xl transition-all duration-200 group-hover:scale-110 ${level.color}`}>
+                  <IconComponent className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                    {count}
+                  <div className="flex items-baseline space-x-2">
+                    <div className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                      {count}
+                    </div>
+                    {searchTerm && (
+                      <div className="text-sm text-secondary-500 dark:text-secondary-400">
+                        of {totalCount}
+                      </div>
+                    )}
                   </div>
                   <div className="text-sm text-secondary-600 dark:text-secondary-400">
                     {level.name}
@@ -196,12 +388,24 @@ export default function FileManager() {
         })}
       </div>
 
-      {/* Files Display */}
-      {files.length > 0 ? (
+      {/* Enhanced Files Display */}
+      {filteredFiles.length > 0 ? (
         <div className="space-y-4">
+          <div className="flex items-center justify-between text-sm text-secondary-600 dark:text-secondary-400">
+            <span>
+              Showing {filteredFiles.length} {filteredFiles.length === 1 ? 'file' : 'files'}
+              {searchTerm && ` matching "${searchTerm}"`}
+            </span>
+            <span>View: {viewMode === 'grid' ? 'Grid' : 'List'}</span>
+          </div>
+          
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {files.map((file) => {
+            <div className={`grid gap-4 transition-all duration-300 ${
+              filteredFiles.length === 1 ? 'grid-cols-1 max-w-md' :
+              filteredFiles.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+              'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            }`}>
+              {filteredFiles.map((file) => {
                 const FileIcon = getFileIcon(file.type);
                 const privacyLevel = PRIVACY_LEVELS.find(l => l.id === file.privacyLevel);
                 const PrivacyIcon = privacyLevel?.icon || Shield;
@@ -299,7 +503,7 @@ export default function FileManager() {
             /* List View */
             <div className="card">
               <div className="divide-y divide-secondary-200 dark:divide-secondary-700">
-                {files.map((file) => {
+                {filteredFiles.map((file) => {
                   const FileIcon = getFileIcon(file.type);
                   const privacyLevel = PRIVACY_LEVELS.find(l => l.id === file.privacyLevel);
                   const PrivacyIcon = privacyLevel?.icon || Shield;
@@ -382,6 +586,8 @@ export default function FileManager() {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

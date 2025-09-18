@@ -233,7 +233,7 @@ function main() {
   console.log('1. Fix TypeScript compilation errors in the full codebase');
   console.log('2. Install and test Ollama for local model features');
   console.log('3. Test synchronization features');
-  console.log('4. Integrate with existing GenSpark agents');
+  console.log('4. Integrate with existing Grahmos agents');
 
   return passedTests === totalTests;
 }

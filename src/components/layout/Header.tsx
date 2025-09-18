@@ -1,17 +1,18 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Moon, Sun, Upload, Bell, Search, Files } from 'lucide-react'
+import { Upload, Bell, Search, Files } from 'lucide-react'
+import { useThemeContext } from '../../contexts/ThemeContext'
+import ThemeToggle from '../ui/ThemeToggle'
+import QuickUploadModal from '../ui/QuickUploadModal'
 
-interface HeaderProps {
-  theme: 'light' | 'dark' | 'system'
-  isDark: boolean
-  onThemeToggle: () => void
-}
-
-export default function Header({ isDark, onThemeToggle }: HeaderProps) {
+export default function Header() {
   const location = useLocation()
+  const { isDark: _isDark } = useThemeContext()
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [notifications] = useState(3) // Mock notification count
 
   return (
-    <header className="sticky top-0 z-50 glass border-b border-white/20 dark:border-secondary-700/50">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-secondary-700/50 backdrop-blur-xl transition-all duration-300">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo and Navigation */}
@@ -54,35 +55,44 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
             </nav>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <button className="relative p-2 rounded-lg text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors duration-200">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent-500 rounded-full animate-glow"></span>
-            </button>
-
-            {/* Quick Upload */}
-            <button className="btn-primary btn-glow flex items-center space-x-2">
-              <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Quick Upload</span>
-            </button>
-
-            {/* Theme Toggle */}
-            <button
-              onClick={onThemeToggle}
-              className="p-2 rounded-lg text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors duration-200"
-              aria-label="Toggle theme"
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
+          {/* Enhanced Actions */}
+          <div className="flex items-center space-x-3">
+            {/* Notifications with count */}
+            <button className="relative p-2 rounded-lg text-secondary-600 dark:text-secondary-400 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-all duration-200 group">
+              <Bell className="w-5 h-5 group-hover:animate-pulse" />
+              {notifications > 0 && (
+                <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] text-xs font-medium bg-accent-500 text-white rounded-full animate-glow">
+                  {notifications > 99 ? '99+' : notifications}
+                </span>
               )}
             </button>
+
+            {/* Quick Upload with enhanced glow */}
+            <button 
+              onClick={() => setShowUploadModal(true)}
+              className="btn-primary btn-glow flex items-center space-x-2 hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              <Upload className="w-4 h-4" />
+              <span className="hidden sm:inline font-medium">Quick Upload</span>
+            </button>
+
+            {/* Enhanced Theme Toggle */}
+            <ThemeToggle />
           </div>
         </div>
       </div>
+
+      {/* Quick Upload Modal */}
+      {showUploadModal && (
+        <QuickUploadModal 
+          onClose={() => setShowUploadModal(false)}
+          onUpload={(files) => {
+            console.log('Files uploaded:', files)
+            setShowUploadModal(false)
+            // TODO: Implement actual upload logic
+          }}
+        />
+      )}
     </header>
   )
 }

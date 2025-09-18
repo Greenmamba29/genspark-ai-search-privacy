@@ -23,7 +23,7 @@ const systemConfig: SystemConfig = {
   mcps: {},
   database: {
     type: 'sqlite',
-    path: process.env.DATABASE_PATH || './data/genspark.db'
+    path: process.env.DATABASE_PATH || './data/grahmos.db'
   },
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379'
@@ -54,7 +54,7 @@ class AgentSystem {
   }
 
   async start(): Promise<void> {
-    console.log('🚀 Starting GenSpark AI Search Agent System...');
+    console.log('🚀 Starting Grahmos AI Search Agent System...');
     
     try {
       // Start Master Orchestrator
@@ -113,7 +113,7 @@ class AgentSystem {
       ...systemConfig.agents['master-orchestrator'],
       messageBusConfig: {
         redisUrl: systemConfig.redis.url,
-        channelPrefix: 'genspark',
+        channelPrefix: 'grahmos',
         requestTimeout: systemConfig.performance.requestTimeout,
         maxRetries: 3
       }
@@ -135,7 +135,7 @@ class AgentSystem {
       ...systemConfig.agents['test-agent-1'],
       messageBusConfig: {
         redisUrl: systemConfig.redis.url,
-        channelPrefix: 'genspark',
+        channelPrefix: 'grahmos',
         requestTimeout: systemConfig.performance.requestTimeout,
         maxRetries: 3
       }

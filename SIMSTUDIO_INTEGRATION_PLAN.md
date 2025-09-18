@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document outlines the integration of SimStudio AI components to enhance GenSpark-AI-Search's offline capabilities with expanded model library, improved synchronization, and enhanced privacy features.
+This document outlines the integration of SimStudio AI components to enhance Grahmos-AI-Search's offline capabilities with expanded model library, improved synchronization, and enhanced privacy features.
 
 ## Analysis Summary
 
 Based on the examination of both codebases:
 
-### GenSpark Current Architecture
+### Grahmos Current Architecture
 - **Backend**: Node.js with TypeScript, Fastify server
 - **AI Components**: @xenova/transformers for local inference
 - **Storage**: SQLite3 for local data, Redis for caching
@@ -168,4 +168,4 @@ interface HybridStorage {
 4. Implement basic model management
 5. Add comprehensive testing suite
 
-This integration will significantly enhance GenSpark-AI-Search's offline capabilities while providing users with more control over their data and AI processing preferences.
+This integration will significantly enhance Grahmos-AI-Search's offline capabilities while providing users with more control over their data and AI processing preferences.

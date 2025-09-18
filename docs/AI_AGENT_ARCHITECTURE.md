@@ -1,8 +1,8 @@
-# AI Agent Architecture - GenSpark AI Search MVP
+# AI Agent Architecture - Grahmos AI Search MVP
 
 ## 🤖 Agent Ecosystem Overview
 
-This document details the complete AI agent architecture required to transform the GenSpark AI Search UI framework into a fully functional offline search system. Each agent has specific responsibilities and communicates through well-defined interfaces.
+This document details the complete AI agent architecture required to transform the Grahmos AI Search UI framework into a fully functional offline search system. Each agent has specific responsibilities and communicates through well-defined interfaces.
 
 ---
 
@@ -545,4 +545,4 @@ interface AgentHealth {
 - **Error Rate**: <1% across all agents
 - **Uptime**: 99.9% availability
 
-This architecture provides a robust, scalable foundation for the GenSpark AI Search MVP, with clear separation of concerns and well-defined interfaces between components.
+This architecture provides a robust, scalable foundation for the Grahmos AI Search MVP, with clear separation of concerns and well-defined interfaces between components.

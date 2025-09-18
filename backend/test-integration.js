@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Integration Test Script for Privacy-Aware GenSpark File Processing
+ * Integration Test Script for Privacy-Aware Grahmos File Processing
  * 
  * This script tests the complete pipeline:
  * 1. File processing with privacy classification
@@ -17,7 +17,7 @@ import fs from 'fs/promises';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log('🧪 GenSpark Privacy-Aware Integration Test');
+console.log('🧪 Grahmos Privacy-Aware Integration Test');
 console.log('==========================================\n');
 
 // Test 1: Check if all SimStudio services are available
@@ -221,4 +221,4 @@ console.log('• Visual privacy indicators in UI');
 console.log('• Secure processing flags and routing');
 console.log('• Offline-first synchronization engine');
 
-console.log('\n✨ The GenSpark AI Search system is now privacy-ready! ✨');
+console.log('\n✨ The Grahmos AI Search system is now privacy-ready! ✨');

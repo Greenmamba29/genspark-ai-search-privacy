@@ -582,7 +582,7 @@ monitor_system
 ```bash
 # Generate comprehensive performance analysis
 analyze_performance() {
-  echo "=== GenSpark AI Search Performance Analysis ===" > logs/full-performance-report.md
+  echo "=== Grahmos AI Search Performance Analysis ===" > logs/full-performance-report.md
   echo "Generated: $(date)" >> logs/full-performance-report.md
   echo "" >> logs/full-performance-report.md
   
@@ -755,7 +755,7 @@ This architecture provides a robust foundation for building scalable AI-powered 
 
 ## MCP Integration - Model Context Protocol
 
-GenSpark AI Search integrates with several open-source MCP servers to enhance its capabilities with standardized interfaces for external services.
+Grahmos AI Search integrates with several open-source MCP servers to enhance its capabilities with standardized interfaces for external services.
 
 ### Available MCP Servers
 

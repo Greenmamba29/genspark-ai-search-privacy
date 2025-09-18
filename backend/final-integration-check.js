@@ -199,7 +199,7 @@ async function main() {
     console.log('   ✅ All privacy features integrated');
     console.log('   ✅ Frontend and backend coordinated');
     
-    console.log('\n✨ Your privacy-first GenSpark AI system is production-ready!');
+    console.log('\n✨ Your privacy-first Grahmos AI system is production-ready!');
     console.log('   Ready for GitHub repository creation and Netlify deployment.');
     return true;
   } else {

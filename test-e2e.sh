@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 GenSpark AI Search - End-to-End Test Suite"
+echo "🧪 Grahmos AI Search - End-to-End Test Suite"
 echo "=============================================="
 
 # Colors for output
@@ -83,7 +83,7 @@ run_test "Markdown Documents Indexed" \
 echo -e "\n${BLUE}4. Real-time File Monitoring${NC}"
 
 # Create a new test file
-TEST_FILE="/Users/paco/Downloads/GenSpark-AI-Search/test-files/monitoring-test.txt"
+TEST_FILE="/Users/paco/Downloads/Grahmos-AI-Search/test-files/monitoring-test.txt"
 echo "Real-time monitoring test file with unique content $(date)" > "$TEST_FILE"
 sleep 3  # Wait for file watcher
 

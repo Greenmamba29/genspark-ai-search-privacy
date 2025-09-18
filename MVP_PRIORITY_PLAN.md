@@ -1,4 +1,4 @@
-# GenSpark AI Search MVP Priority Plan
+# Grahmos AI Search MVP Priority Plan
 
 **Status Assessment Date**: September 17, 2025  
 **Current Version**: 1.0.0  

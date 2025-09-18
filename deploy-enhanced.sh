@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "🚀 Deploying Enhanced GenSpark AI Search..."
+echo "🚀 Deploying Enhanced Grahmos AI Search..."
 
 # Navigate to project root
-cd /Users/paco/Downloads/GenSpark-AI-Search
+cd /Users/paco/Downloads/Grahmos-AI-Search
 
 # Install dependencies if needed
 echo "📦 Installing dependencies..."

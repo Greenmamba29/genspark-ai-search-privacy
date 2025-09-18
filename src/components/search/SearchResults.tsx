@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { 
   File, 
   FileText, 
@@ -18,11 +18,15 @@ import {
   Hash,
   Tag,
   Clock,
-  Zap,
   Copy,
-  Download
+  Download,
+  Maximize2,
+  BookOpen,
+  Play,
+  Monitor,
+  X
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { SearchResult } from '../../types/index'
 
 interface SearchResultsProps {
@@ -47,7 +51,8 @@ export default function SearchResults({
   isBackendConnected
 }: SearchResultsProps) {
   const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set())
-  const [previewModes, setPreviewModes] = useState<Record<string, 'content' | 'metadata' | 'preview'>>({})
+  const [previewModes, setPreviewModes] = useState<Record<string, 'content' | 'metadata' | 'preview' | 'fullscreen'>>({})
+  const [fullscreenResult, setFullscreenResult] = useState<SearchResult | null>(null)
 
   const getFileIcon = (type: SearchResult['type'], path?: string) => {
     const iconProps = { className: "w-5 h-5" }
@@ -96,35 +101,150 @@ export default function SearchResults({
   }
 
   // Set preview mode for a result
-  const setPreviewMode = (resultId: string, mode: 'content' | 'metadata' | 'preview') => {
+  const setPreviewMode = (resultId: string, mode: 'content' | 'metadata' | 'preview' | 'fullscreen') => {
     setPreviewModes(prev => ({ ...prev, [resultId]: mode }))
   }
 
-  // Get syntax highlighting for code content
-  const getSyntaxHighlight = (content: string, path: string) => {
+  // Generate thumbnail for different file types
+  const generateThumbnail = useCallback((result: SearchResult): string => {
+    const ext = result.path.split('.').pop()?.toLowerCase() || ''
+    
+    // For images, try to generate preview URL (in real app, use proper image processing)
+    if (result.type === 'image' || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+      // In a real application, you'd generate actual thumbnails
+      return `data:image/svg+xml,${encodeURIComponent(`
+        <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg" class="bg-gradient-to-br from-blue-400 to-purple-500">
+          <rect width="64" height="64" fill="url(#grad)"/>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <text x="32" y="40" text-anchor="middle" fill="white" font-size="20" font-weight="bold">📷</text>
+        </svg>
+      `)}`
+    }
+
+    // For PDFs, generate document thumbnail
+    if (ext === 'pdf') {
+      return `data:image/svg+xml,${encodeURIComponent(`
+        <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect width="64" height="64" fill="#ef4444" rx="8"/>
+          <text x="32" y="20" text-anchor="middle" fill="white" font-size="8" font-weight="bold">PDF</text>
+          <rect x="12" y="25" width="40" height="2" fill="white" opacity="0.8"/>
+          <rect x="12" y="30" width="35" height="2" fill="white" opacity="0.6"/>
+          <rect x="12" y="35" width="38" height="2" fill="white" opacity="0.6"/>
+          <rect x="12" y="40" width="32" height="2" fill="white" opacity="0.4"/>
+        </svg>
+      `)}`
+    }
+
+    // For code files, generate code thumbnail with syntax colors
+    if (result.type === 'code') {
+      const colors = {
+        js: '#f7df1e', ts: '#3178c6', py: '#3776ab', java: '#ed8b00',
+        cpp: '#00599c', go: '#00add8', rust: '#000000', php: '#777bb4'
+      }
+      const color = colors[ext as keyof typeof colors] || '#6b7280'
+      
+      return `data:image/svg+xml,${encodeURIComponent(`
+        <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+          <rect width="64" height="64" fill="${color}" rx="8"/>
+          <text x="32" y="15" text-anchor="middle" fill="white" font-size="7" font-weight="bold">${ext.toUpperCase()}</text>
+          <text x="8" y="28" fill="white" font-size="6" font-family="monospace">{'{'}</text>
+          <text x="12" y="36" fill="white" font-size="5" font-family="monospace">const x = 1;</text>
+          <text x="12" y="44" fill="white" font-size="5" font-family="monospace">func() {}</text>
+          <text x="8" y="52" fill="white" font-size="6" font-family="monospace">{'}'}</text>
+        </svg>
+      `)}`
+    }
+
+    // Default file thumbnail
+    return `data:image/svg+xml,${encodeURIComponent(`
+      <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" fill="#64748b" rx="8"/>
+        <text x="32" y="40" text-anchor="middle" fill="white" font-size="18">📄</text>
+      </svg>
+    `)}`
+  }, [])
+
+  // Enhanced syntax highlighting for code content
+  const getSyntaxHighlight = useCallback((content: string, path: string): string => {
     const ext = path.split('.').pop()?.toLowerCase() || ''
     const codeLanguages = {
       js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
       py: 'python', java: 'java', cpp: 'cpp', c: 'c', h: 'c',
       css: 'css', html: 'html', json: 'json', xml: 'xml',
-      md: 'markdown', sql: 'sql', sh: 'bash', yaml: 'yaml', yml: 'yaml'
+      md: 'markdown', sql: 'sql', sh: 'bash', yaml: 'yaml', yml: 'yaml',
+      go: 'go', rust: 'rust', php: 'php', rb: 'ruby', swift: 'swift',
+      kt: 'kotlin', dart: 'dart', scala: 'scala', r: 'r'
     }
 
     const language = codeLanguages[ext as keyof typeof codeLanguages] || 'text'
     
-    // Simple syntax highlighting simulation (in real app, use proper syntax highlighter)
-    if (language === 'javascript' || language === 'typescript') {
-      return content
-        .replace(/(function|const|let|var|if|else|for|while|class|import|export)/g, 
+    // Enhanced syntax highlighting patterns
+    let highlighted = content
+    
+    if (['javascript', 'typescript'].includes(language)) {
+      highlighted = highlighted
+        // Keywords
+        .replace(/(\b(?:function|const|let|var|if|else|for|while|class|import|export|async|await|return|try|catch|finally|throw|new|this|super|extends|implements|interface|type|enum|namespace|public|private|protected|static|readonly)\b)/g, 
           '<span class="text-purple-600 dark:text-purple-400 font-semibold">$1</span>')
-        .replace(/("[^"]*"|'[^']*'|`[^`]*`)/g, 
+        // Strings
+        .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, 
           '<span class="text-green-600 dark:text-green-400">$1</span>')
+        // Numbers
+        .replace(/(\b\d+(?:\.\d+)?\b)/g,
+          '<span class="text-blue-600 dark:text-blue-400">$1</span>')
+        // Comments
         .replace(/(\/\/.*$)/gm, 
           '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>')
+        .replace(/(\/\*[\s\S]*?\*\/)/g,
+          '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>')
+        // Functions
+        .replace(/(\b\w+)(?=\s*\()/g,
+          '<span class="text-blue-700 dark:text-blue-300 font-medium">$1</span>')
+    } else if (language === 'python') {
+      highlighted = highlighted
+        .replace(/(\b(?:def|class|if|elif|else|for|while|import|from|as|try|except|finally|with|lambda|return|yield|break|continue|pass|global|nonlocal|and|or|not|in|is|None|True|False)\b)/g,
+          '<span class="text-purple-600 dark:text-purple-400 font-semibold">$1</span>')
+        .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|'''[\s\S]*?'''|"""[\s\S]*?""")/g,
+          '<span class="text-green-600 dark:text-green-400">$1</span>')
+        .replace(/(#.*$)/gm,
+          '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>')
+        .replace(/(\b\d+(?:\.\d+)?\b)/g,
+          '<span class="text-blue-600 dark:text-blue-400">$1</span>')
+    } else if (language === 'json') {
+      highlighted = highlighted
+        .replace(/("[^"]*")(?=\s*:)/g,
+          '<span class="text-blue-600 dark:text-blue-400 font-medium">$1</span>')
+        .replace(/("[^"]*")(?!\s*:)/g,
+          '<span class="text-green-600 dark:text-green-400">$1</span>')
+        .replace(/(\b(?:true|false|null)\b)/g,
+          '<span class="text-purple-600 dark:text-purple-400 font-semibold">$1</span>')
+        .replace(/(\b\d+(?:\.\d+)?\b)/g,
+          '<span class="text-orange-600 dark:text-orange-400">$1</span>')
+    } else if (language === 'css') {
+      highlighted = highlighted
+        .replace(/([.#][\w-]+)/g,
+          '<span class="text-purple-600 dark:text-purple-400 font-semibold">$1</span>')
+        .replace(/([\w-]+)(?=\s*:)/g,
+          '<span class="text-blue-600 dark:text-blue-400 font-medium">$1</span>')
+        .replace(/("[^"]*"|'[^']*')/g,
+          '<span class="text-green-600 dark:text-green-400">$1</span>')
+    } else if (language === 'html') {
+      highlighted = highlighted
+        .replace(/(&lt;\/?[\w\s="'.-]*&gt;)/g,
+          '<span class="text-purple-600 dark:text-purple-400 font-semibold">$1</span>')
+        .replace(/(\w+)(?==)/g,
+          '<span class="text-blue-600 dark:text-blue-400 font-medium">$1</span>')
+        .replace(/("[^"]*"|'[^']*')/g,
+          '<span class="text-green-600 dark:text-green-400">$1</span>')
     }
     
-    return content
-  }
+    return highlighted
+  }, [])
 
   // Generate content preview based on file type
   const getContentPreview = (result: SearchResult) => {
@@ -264,23 +384,32 @@ export default function SearchResults({
                     </div>
                   </div>
                   
-                  {/* Preview Mode Toggle */}
-                  <div className="flex items-center space-x-1 mt-3">
-                    {(['content', 'metadata', 'preview'] as const).map((mode) => (
-                      <button
-                        key={mode}
-                        onClick={() => setPreviewMode(result.id, mode)}
-                        className={`px-2 py-1 text-xs rounded transition-colors ${
-                          previewMode === mode
-                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                        }`}
-                      >
-                        {mode === 'content' && <><Eye className="w-3 h-3 inline mr-1" />Content</>}
-                        {mode === 'metadata' && <><Tag className="w-3 h-3 inline mr-1" />Meta</>}
-                        {mode === 'preview' && <><Zap className="w-3 h-3 inline mr-1" />Quick</>}
-                      </button>
-                    ))}
+                  {/* Enhanced Preview Mode Toggle */}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center space-x-1">
+                      {(['content', 'metadata', 'preview'] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => setPreviewMode(result.id, mode)}
+                          className={`px-2 py-1 text-xs rounded-lg transition-all duration-200 ${
+                            previewMode === mode
+                              ? 'bg-blue-500 text-white shadow-sm'
+                              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          {mode === 'content' && <><BookOpen className="w-3 h-3 inline mr-1" />Content</>}
+                          {mode === 'metadata' && <><Tag className="w-3 h-3 inline mr-1" />Details</>}
+                          {mode === 'preview' && <><Monitor className="w-3 h-3 inline mr-1" />Preview</>}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setFullscreenResult(result)}
+                      className="p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                      title="View fullscreen"
+                    >
+                      <Maximize2 className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
 
@@ -365,22 +494,77 @@ export default function SearchResults({
                   )}
                   
                   {previewMode === 'preview' && (
-                    <div className="text-center py-4">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center">
-                        {getFileIcon(result.type, result.path)}
+                    <div className="space-y-4">
+                      {/* Enhanced Visual Preview */}
+                      <div className="relative">
+                        <div className="aspect-video bg-gradient-to-br from-slate-100 via-slate-50 to-white dark:from-slate-800 dark:via-slate-700 dark:to-slate-600 rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden">
+                          {/* Thumbnail Preview */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <img 
+                              src={generateThumbnail(result)} 
+                              alt={`Preview of ${result.title}`}
+                              className="w-20 h-20 object-cover rounded-lg shadow-sm"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                          
+                          {/* File Type Indicator */}
+                          <div className="absolute top-3 left-3 px-2 py-1 bg-black/20 backdrop-blur-sm rounded text-white text-xs font-medium">
+                            {result.type.toUpperCase()}
+                          </div>
+                          
+                          {/* File Size */}
+                          <div className="absolute top-3 right-3 px-2 py-1 bg-black/20 backdrop-blur-sm rounded text-white text-xs">
+                            {formatFileSize(result.size)}
+                          </div>
+                          
+                          {/* Play Button for Videos */}
+                          {result.type === 'video' && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-16 h-16 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                <Play className="w-8 h-8 text-white ml-1" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Quick Actions */}
+                        <div className="flex justify-center space-x-2 mt-3">
+                          <button 
+                            onClick={() => setFullscreenResult(result)}
+                            className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-1"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>Full View</span>
+                          </button>
+                          <button 
+                            onClick={() => console.log('Opening file:', result.path)}
+                            className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-500 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center space-x-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Open</span>
+                          </button>
+                          {result.type === 'image' && (
+                            <button className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-500 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center space-x-1">
+                              <Download className="w-3 h-3" />
+                              <span>Save</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                        {result.type === 'code' ? 'Code file ready for viewing' : 'Document ready for preview'}
-                      </p>
-                      <div className="flex justify-center space-x-2">
-                        <button className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-1">
-                          <Eye className="w-3 h-3" />
-                          <span>Quick View</span>
-                        </button>
-                        <button className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center space-x-1">
-                          <ExternalLink className="w-3 h-3" />
-                          <span>Open</span>
-                        </button>
+                      
+                      {/* Preview Info */}
+                      <div className="text-center">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {result.type === 'code' ? `${result.path.split('.').pop()?.toUpperCase()} source file ready for syntax-highlighted viewing` :
+                           result.type === 'document' ? 'Document ready for rich text preview with formatting' :
+                           result.type === 'image' ? 'High-resolution image with metadata and EXIF data' :
+                           result.type === 'video' ? 'Video file with thumbnail preview and metadata' :
+                           'File ready for preview with enhanced details'}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -449,23 +633,32 @@ export default function SearchResults({
                             dangerouslySetInnerHTML={{ __html: highlightText(result.title, query) }}
                           />
                           
-                          {/* Preview Mode Toggle */}
-                          <div className="flex items-center space-x-1 mb-3">
-                            {(['content', 'metadata', 'preview'] as const).map((mode) => (
-                              <button
-                                key={mode}
-                                onClick={() => setPreviewMode(result.id, mode)}
-                                className={`px-2 py-1 text-xs rounded transition-colors ${
-                                  previewMode === mode
-                                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                              >
-                                {mode === 'content' && <><Eye className="w-3 h-3 inline mr-1" />Content</>}
-                                {mode === 'metadata' && <><Tag className="w-3 h-3 inline mr-1" />Metadata</>}
-                                {mode === 'preview' && <><Zap className="w-3 h-3 inline mr-1" />Preview</>}
-                              </button>
-                            ))}
+                          {/* Enhanced Preview Mode Toggle */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-1">
+                              {(['content', 'metadata', 'preview'] as const).map((mode) => (
+                                <button
+                                  key={mode}
+                                  onClick={() => setPreviewMode(result.id, mode)}
+                                  className={`px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                                    previewMode === mode
+                                      ? 'bg-blue-500 text-white shadow-sm'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200'
+                                  }`}
+                                >
+                                  {mode === 'content' && <><BookOpen className="w-3 h-3 inline mr-1" />Content</>}
+                                  {mode === 'metadata' && <><Tag className="w-3 h-3 inline mr-1" />Details</>}
+                                  {mode === 'preview' && <><Monitor className="w-3 h-3 inline mr-1" />Preview</>}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => setFullscreenResult(result)}
+                              className="p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                              title="View fullscreen"
+                            >
+                              <Maximize2 className="w-4 h-4" />
+                            </button>
                           </div>
                           
                           {/* Content based on preview mode */}
@@ -528,25 +721,65 @@ export default function SearchResults({
                           )}
                           
                           {previewMode === 'preview' && (
-                            <div className="flex items-center space-x-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                              <div className="w-12 h-12 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                                {getFileIcon(result.type, result.path)}
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                                  {result.type === 'code' ? 'Code file ready for syntax-highlighted viewing' : 
-                                   result.type === 'document' ? 'Document ready for quick preview' :
-                                   'File ready for preview'}
-                                </p>
-                                <div className="flex items-center space-x-2">
-                                  <button className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-1">
-                                    <Eye className="w-3 h-3" />
-                                    <span>Quick View</span>
-                                  </button>
-                                  <button className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-500 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center space-x-1">
-                                    <Download className="w-3 h-3" />
-                                    <span>Download</span>
-                                  </button>
+                            <div className="space-y-4">
+                              {/* Enhanced Visual Preview */}
+                              <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-slate-50 via-slate-25 to-white dark:from-slate-800 dark:via-slate-750 dark:to-slate-700 rounded-xl border border-slate-200 dark:border-slate-600">
+                                <div className="relative">
+                                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-600">
+                                    <img 
+                                      src={generateThumbnail(result)} 
+                                      alt={`Preview of ${result.title}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  {/* File Type Badge */}
+                                  <div className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full font-medium">
+                                    {result.path.split('.').pop()?.toUpperCase()}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                      <h5 className="font-medium text-slate-900 dark:text-white text-sm mb-1">
+                                        Enhanced Preview
+                                      </h5>
+                                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                                        {result.type === 'code' ? `${result.path.split('.').pop()?.toUpperCase()} source with syntax highlighting` :
+                                         result.type === 'document' ? 'Rich document preview with formatting' :
+                                         result.type === 'image' ? 'High-resolution image with EXIF data' :
+                                         result.type === 'video' ? 'Video with thumbnail and metadata' :
+                                         'Enhanced preview with file analysis'}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-xs text-slate-500 dark:text-slate-400">{formatFileSize(result.size)}</div>
+                                      <div className="text-xs text-slate-500 dark:text-slate-400">{formatDate(result.lastModified)}</div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <button 
+                                      onClick={() => setFullscreenResult(result)}
+                                      className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-1"
+                                    >
+                                      <Eye className="w-3 h-3" />
+                                      <span>Full View</span>
+                                    </button>
+                                    <button 
+                                      onClick={() => console.log('Opening file:', result.path)}
+                                      className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-500 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center space-x-1"
+                                    >
+                                      <ExternalLink className="w-3 h-3" />
+                                      <span>Open</span>
+                                    </button>
+                                    {result.type === 'image' && (
+                                      <button className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-500 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center space-x-1">
+                                        <Download className="w-3 h-3" />
+                                        <span>Save</span>
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -590,6 +823,167 @@ export default function SearchResults({
           })}
         </div>
       )}
+      
+      {/* Fullscreen Preview Modal */}
+      <AnimatePresence>
+        {fullscreenResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setFullscreenResult(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {getFileIcon(fullscreenResult.type, fullscreenResult.path)}
+                  <div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white text-lg"
+                        dangerouslySetInnerHTML={{ __html: highlightText(fullscreenResult.title, query) }}
+                    />
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-mono">
+                      {fullscreenResult.path}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                    {Math.round(fullscreenResult.relevanceScore * 100)}% match
+                  </div>
+                  <button
+                    onClick={() => setFullscreenResult(null)}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-slate-500" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Modal Content */}
+              <div className="flex-1 overflow-hidden flex">
+                {/* Main Preview Area */}
+                <div className="flex-1 p-6 overflow-y-auto">
+                  {fullscreenResult.type === 'image' ? (
+                    <div className="space-y-4">
+                      <div className="aspect-video bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                        <img 
+                          src={generateThumbnail(fullscreenResult)} 
+                          alt={fullscreenResult.title}
+                          className="max-w-full max-h-full object-contain rounded-lg"
+                        />
+                      </div>
+                      <p className="text-center text-slate-600 dark:text-slate-400 text-sm">
+                        High-resolution preview would be displayed here in a production environment
+                      </p>
+                    </div>
+                  ) : fullscreenResult.type === 'code' ? (
+                    <div className="bg-slate-900 dark:bg-slate-950 rounded-xl p-6 font-mono text-sm overflow-x-auto">
+                      <div 
+                        className="text-slate-100 leading-relaxed whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ 
+                          __html: getSyntaxHighlight(fullscreenResult.content, fullscreenResult.path)
+                        }}
+                      />
+                    </div>
+                  ) : fullscreenResult.type === 'document' ? (
+                    <div className="space-y-4">
+                      <div className="aspect-[3/4] bg-white dark:bg-slate-100 rounded-xl p-8 border border-slate-200 overflow-y-auto">
+                        <div 
+                          className="text-slate-900 leading-relaxed"
+                          dangerouslySetInnerHTML={{ 
+                            __html: highlightText(fullscreenResult.content, query)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center space-y-4">
+                        <div className="w-24 h-24 mx-auto bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-2xl flex items-center justify-center">
+                          {getFileIcon(fullscreenResult.type, fullscreenResult.path)}
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                            {fullscreenResult.type.charAt(0).toUpperCase() + fullscreenResult.type.slice(1)} File
+                          </h4>
+                          <p className="text-slate-600 dark:text-slate-400">
+                            Preview not available for this file type
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Sidebar with Metadata */}
+                <div className="w-80 border-l border-slate-200 dark:border-slate-700 p-6 bg-slate-50 dark:bg-slate-800/50 overflow-y-auto">
+                  <h4 className="font-medium text-slate-900 dark:text-white mb-4">File Information</h4>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 block">Size</span>
+                        <span className="text-slate-900 dark:text-white font-medium">{formatFileSize(fullscreenResult.size)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 block">Type</span>
+                        <span className="text-slate-900 dark:text-white font-medium capitalize">{fullscreenResult.type}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-slate-500 dark:text-slate-400 block mb-1">Modified</span>
+                        <span className="text-slate-900 dark:text-white font-medium">{formatDate(fullscreenResult.lastModified)}</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400 block mb-2">Path</span>
+                      <p className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 p-2 rounded break-all">
+                        {fullscreenResult.path}
+                      </p>
+                    </div>
+                    
+                    {fullscreenResult.content && (
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 block mb-2">Preview</span>
+                        <div className="text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-700 p-3 rounded-lg max-h-40 overflow-y-auto">
+                          {fullscreenResult.content.substring(0, 500)}
+                          {fullscreenResult.content.length > 500 && '...'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="mt-6 space-y-2">
+                    <button 
+                      onClick={() => navigator.clipboard.writeText(fullscreenResult.path)}
+                      className="w-full px-4 py-2 text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center space-x-2"
+                    >
+                      <Copy className="w-4 h-4" />
+                      <span>Copy Path</span>
+                    </button>
+                    <button 
+                      onClick={() => console.log('Opening file:', fullscreenResult.path)}
+                      className="w-full px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Open File</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

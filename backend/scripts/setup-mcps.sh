@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🔌 Setting up MCP integrations for GenSpark AI Search..."
+echo "🔌 Setting up MCP integrations for Grahmos AI Search..."
 
 # Create MCP directory structure
 mkdir -p src/mcps/{filesystem,search,vector-db,nlp-models}

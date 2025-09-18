@@ -1,6 +1,6 @@
-# 🚀 GitHub Deployment Steps for Privacy-Enhanced GenSpark
+# 🚀 GitHub Deployment Steps for Privacy-Enhanced Grahmos
 
-Your privacy-enhanced GenSpark AI Search system is ready for deployment! Follow these steps:
+Your privacy-enhanced Grahmos AI Search system is ready for deployment! Follow these steps:
 
 ## 📋 Step 1: Create GitHub Repository
 
@@ -20,7 +20,7 @@ After creating the repository, GitHub will show you setup instructions. Run thes
 
 ```bash
 # Navigate to your project
-cd /Users/paco/Downloads/GenSpark-AI-Search
+cd /Users/paco/Downloads/Grahmos-AI-Search
 
 # Add GitHub as remote origin (replace YOUR_USERNAME and REPO_NAME)
 git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
@@ -159,6 +159,6 @@ After deployment, verify these work:
 
 ---
 
-**Your privacy-first GenSpark AI Search system is production-ready! 🎉**
+**Your privacy-first Grahmos AI Search system is production-ready! 🎉**
 
 The integration includes enterprise-grade privacy controls, intelligent model selection, and professional UI design. Perfect for demonstrating advanced AI capabilities with privacy compliance.

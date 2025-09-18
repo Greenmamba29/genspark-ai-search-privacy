@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide demonstrates how to use the enhanced offline capabilities in GenSpark-AI-Search powered by SimStudio components.
+This guide demonstrates how to use the enhanced offline capabilities in Grahmos-AI-Search powered by SimStudio components.
 
 ## Quick Start
 
@@ -199,7 +199,7 @@ const fallbacks = await registry.getOfflineFallbacks('gpt-4o');
 await registry.enableOfflineMode();
 ```
 
-## Integration with Existing GenSpark Components
+## Integration with Existing Grahmos Components
 
 ### 1. Enhanced File Processing
 
