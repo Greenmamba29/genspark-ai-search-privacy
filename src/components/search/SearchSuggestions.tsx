@@ -106,7 +106,7 @@ export default function SearchSuggestions({
 
   // Handle keyboard navigation
   const handleKeyDown = (event: Event) => {
-    const keyboardEvent = event as KeyboardEvent
+    const keyboardEvent = event as unknown as KeyboardEvent
     if (!isVisible || suggestions.length === 0) return
 
     switch (keyboardEvent.key) {
