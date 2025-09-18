@@ -2,7 +2,7 @@ export interface SearchResult {
   id: string
   title: string
   content: string
-  type: 'document' | 'image' | 'video' | 'code' | 'other'
+  type: 'document' | 'image' | 'video' | 'code' | 'data' | 'other'
   path: string
   size: number
   lastModified: Date

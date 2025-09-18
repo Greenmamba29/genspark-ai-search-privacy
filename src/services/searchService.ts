@@ -71,15 +71,15 @@ class SearchService {
     }
   }
 
-  async search(query: SearchQuery): Promise<SearchResponse> {
+  async search(query: SearchQuery, options?: { signal?: AbortSignal }): Promise<SearchResponse> {
     if (this.isConnected) {
-      return this.performBackendSearch(query)
+      return this.performBackendSearch(query, options)
     } else {
-      return this.performMockSearch(query)
+      return this.performMockSearch(query, options)
     }
   }
 
-  private async performBackendSearch(query: SearchQuery): Promise<SearchResponse> {
+  private async performBackendSearch(query: SearchQuery, options?: { signal?: AbortSignal }): Promise<SearchResponse> {
     try {
       const response = await fetch(`${this.config.backendUrl}/api/search`, {
         method: 'POST',
@@ -93,7 +93,7 @@ class SearchService {
           sortOrder: query.sortOrder,
           model: this.config.defaultModel
         }),
-        signal: AbortSignal.timeout(this.config.timeout)
+        signal: options?.signal || AbortSignal.timeout(this.config.timeout)
       })
 
       if (!response.ok) {
@@ -114,7 +114,7 @@ class SearchService {
     }
   }
 
-  private async performMockSearch(query: SearchQuery): Promise<SearchResponse> {
+  private async performMockSearch(query: SearchQuery, options?: { signal?: AbortSignal }): Promise<SearchResponse> {
     // Simulate processing time
     const startTime = Date.now()
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500))

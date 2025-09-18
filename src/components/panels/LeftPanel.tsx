@@ -17,9 +17,19 @@ import {
   Moon,
   Sun,
   Monitor,
-  Zap
+  Zap,
+  Brain,
+  Cpu,
+  Loader2,
+  PlayCircle,
+  XCircle,
+  Star,
+  ArrowUpCircle,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
+import { useModelManager } from '../../hooks/useModelManager';
 
 interface LeftPanelProps {
   isOpen: boolean;
@@ -41,6 +51,18 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
     importHistory,
     searchStats
   } = useSearchHistory();
+
+  const {
+    models,
+    modelStats,
+    activeModel,
+    isLoading: modelsLoading,
+    error: modelsError,
+    downloadModel,
+    switchModel,
+    deleteModel,
+    getModelRecommendations
+  } = useModelManager();
 
   // Initialize theme from localStorage
   useEffect(() => {
@@ -405,6 +427,261 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
                           <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                             <Bookmark className="w-8 h-8 mx-auto mb-2 opacity-50" />
                             <p className="text-sm">No saved searches</p>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* AI Model Management Section */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => toggleSection('models')}
+                    className="flex items-center justify-between w-full text-left"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Brain className="w-4 h-4 text-purple-500" />
+                      <span className="font-medium text-slate-900 dark:text-white">AI Models</span>
+                      <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full">
+                        {models.filter(m => m.status === 'installed').length}/{models.length}
+                      </span>
+                    </div>
+                    {expandedSections.has('models') ? (
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {expandedSections.has('models') && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-4 overflow-hidden"
+                      >
+                        {/* Active Model Status */}
+                        {activeModel && (
+                          <div className="p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <div className="p-1.5 bg-purple-500 rounded-lg">
+                                <Cpu className="w-3 h-3 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                  {activeModel.displayName}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Active Model • {activeModel.size}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Ready</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Performance Stats */}
+                            {modelStats[activeModel.id] && (
+                              <div className="grid grid-cols-3 gap-2 text-xs">
+                                <div className="text-center">
+                                  <div className="font-medium text-slate-900 dark:text-white">
+                                    {modelStats[activeModel.id].avgResponseTime}ms
+                                  </div>
+                                  <div className="text-slate-500 dark:text-slate-400">Response</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-medium text-slate-900 dark:text-white">
+                                    {modelStats[activeModel.id].totalSearches}
+                                  </div>
+                                  <div className="text-slate-500 dark:text-slate-400">Searches</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-medium text-slate-900 dark:text-white">
+                                    {modelStats[activeModel.id].accuracy}%
+                                  </div>
+                                  <div className="text-slate-500 dark:text-slate-400">Accuracy</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Available Models */}
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Available Models
+                          </h4>
+                          
+                          {models.map((model) => {
+                            const isInstalling = model.status === 'downloading';
+                            const isInstalled = model.status === 'installed';
+                            const hasError = model.status === 'error';
+                            const stats = modelStats[model.id];
+                            
+                            return (
+                              <motion.div
+                                key={model.id}
+                                className={`p-3 rounded-lg border-2 transition-all ${
+                                  model.isActive
+                                    ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2">
+                                      <h5 className="text-sm font-medium text-slate-900 dark:text-white">
+                                        {model.displayName}
+                                      </h5>
+                                      {model.performance === 'fast' && (
+                                        <div title="Fast">
+                                          <Star className="w-3 h-3 text-yellow-500" />
+                                        </div>
+                                      )}
+                                      {model.performance === 'accurate' && (
+                                        <div title="High Accuracy">
+                                          <ArrowUpCircle className="w-3 h-3 text-green-500" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                      {model.description}
+                                    </p>
+                                    <div className="flex items-center space-x-2 mt-1">
+                                      <span className="text-xs text-slate-400">{model.size}</span>
+                                      {isInstalled && stats && (
+                                        <span className="text-xs text-green-600 dark:text-green-400">
+                                          {stats.avgResponseTime}ms avg
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-col items-end space-y-1">
+                                    {/* Status Indicator */}
+                                    {isInstalling && (
+                                      <div className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400">
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        <span>Installing</span>
+                                      </div>
+                                    )}
+                                    {isInstalled && !model.isActive && (
+                                      <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        <span>Installed</span>
+                                      </div>
+                                    )}
+                                    {model.isActive && (
+                                      <div className="flex items-center space-x-1 text-xs text-purple-600 dark:text-purple-400">
+                                        <PlayCircle className="w-3 h-3" />
+                                        <span>Active</span>
+                                      </div>
+                                    )}
+                                    {hasError && (
+                                      <div className="flex items-center space-x-1 text-xs text-red-600 dark:text-red-400">
+                                        <AlertCircle className="w-3 h-3" />
+                                        <span>Error</span>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Action Button */}
+                                    {!isInstalled && !isInstalling && (
+                                      <button
+                                        onClick={() => downloadModel(model.id)}
+                                        disabled={modelsLoading}
+                                        className="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors disabled:opacity-50"
+                                      >
+                                        <Download className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                    
+                                    {isInstalled && !model.isActive && (
+                                      <button
+                                        onClick={() => switchModel(model.id)}
+                                        disabled={modelsLoading}
+                                        className="px-2 py-1 text-xs bg-purple-500 hover:bg-purple-600 text-white rounded transition-colors disabled:opacity-50"
+                                      >
+                                        Switch
+                                      </button>
+                                    )}
+                                    
+                                    {isInstalled && !model.isActive && (
+                                      <button
+                                        onClick={() => deleteModel(model.id)}
+                                        className="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                                        title="Uninstall Model"
+                                      >
+                                        <XCircle className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Download Progress */}
+                                {isInstalling && typeof model.downloadProgress === 'number' && (
+                                  <div className="mt-2">
+                                    <div className="flex justify-between text-xs mb-1">
+                                      <span className="text-slate-600 dark:text-slate-400">Downloading...</span>
+                                      <span className="text-blue-600 dark:text-blue-400">{model.downloadProgress}%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                                      <motion.div
+                                        className="bg-blue-500 h-1.5 rounded-full"
+                                        style={{ width: `${model.downloadProgress}%` }}
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${model.downloadProgress}%` }}
+                                        transition={{ duration: 0.3 }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Capabilities */}
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  {model.capabilities.slice(0, 2).map((capability, index) => (
+                                    <span
+                                      key={index}
+                                      className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded"
+                                    >
+                                      {capability}
+                                    </span>
+                                  ))}
+                                  {model.capabilities.length > 2 && (
+                                    <span className="text-xs text-slate-400">+{model.capabilities.length - 2}</span>
+                                  )}
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Model Recommendations */}
+                        {getModelRecommendations().length > 0 && (
+                          <div className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                            <h4 className="text-sm font-medium text-slate-900 dark:text-white mb-2 flex items-center space-x-2">
+                              <ArrowUpCircle className="w-4 h-4 text-yellow-600" />
+                              <span>Recommendations</span>
+                            </h4>
+                            {getModelRecommendations().map((rec, index) => (
+                              <p key={index} className="text-xs text-slate-600 dark:text-slate-400 mb-1">
+                                {rec.message}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Error Display */}
+                        {modelsError && (
+                          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <AlertCircle className="w-4 h-4 text-red-500" />
+                              <p className="text-sm text-red-700 dark:text-red-300">{modelsError}</p>
+                            </div>
                           </div>
                         )}
                       </motion.div>

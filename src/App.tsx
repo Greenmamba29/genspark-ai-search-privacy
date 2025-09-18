@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import EnhancedSearchInterface from './components/search/EnhancedSearchInterface'
+import ConsoleSearchInterface from './components/search/ConsoleSearchInterface'
 import FileManager from './components/ui/FileManager'
 
 function App() {
@@ -11,7 +11,7 @@ function App() {
           <Routes>
             <Route 
               path="/" 
-              element={<EnhancedSearchInterface />} 
+              element={<ConsoleSearchInterface />}
             />
             <Route path="/files" element={<FileManager />} />
           </Routes>
