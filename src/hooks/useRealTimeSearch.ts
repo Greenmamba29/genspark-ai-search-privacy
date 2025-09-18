@@ -144,7 +144,7 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
           }
         }
       } catch (error) {
-        if (error.name !== 'AbortError') {
+        if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Real-time search failed:', error)
           setState(prev => ({
             ...prev,

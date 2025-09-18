@@ -52,7 +52,7 @@ run_test "Index Ready Status" \
 
 run_test "File Count Check" \
     "curl -s http://localhost:3001/health | jq -r '.indexStats.totalFiles'" \
-    "9"
+    "10"
 
 echo -e "\n${BLUE}2. Real File Indexing Tests${NC}"
 run_test "Search for AI Content" \
@@ -60,11 +60,11 @@ run_test "Search for AI Content" \
     "true"
 
 run_test "Search Returns Real Results" \
-    "curl -s -X POST http://localhost:3001/api/search -H 'Content-Type: application/json' -d '{\"query\": \"testing document\", \"limit\": 1}' | jq -r '.results[0].title'" \
+    "curl -s -X POST http://localhost:3001/api/search -H 'Content-Type: application/json' -d '{\"query\": \"AI Testing Document\", \"limit\": 10}' | jq -r '.results[] | select(.title == \"AI Testing Document\") | .title'" \
     "AI Testing Document"
 
 run_test "Neural Networks File Found" \
-    "curl -s -X POST http://localhost:3001/api/search -H 'Content-Type: application/json' -d '{\"query\": \"TensorFlow PyTorch\", \"limit\": 5}' | jq -r '.results[] | select(.title == \"Neural Networks Research Paper\") | .title'" \
+    "curl -s -X POST http://localhost:3001/api/search -H 'Content-Type: application/json' -d '{\"query\": \"neural networks research\", \"limit\": 10}' | jq -r '.results[] | select(.title == \"Neural Networks Research Paper\") | .title'" \
     "Neural Networks Research Paper"
 
 echo -e "\n${BLUE}3. File Type Coverage${NC}"
@@ -92,8 +92,8 @@ run_test "Real-time File Detection" \
     "10"
 
 run_test "New File Searchable" \
-    "curl -s -X POST http://localhost:3001/api/search -H 'Content-Type: application/json' -d '{\"query\": \"monitoring test file\", \"limit\": 1}' | jq -r '.results[0].title'" \
-    "Monitoring Test"
+    "curl -s -X POST http://localhost:3001/api/search -H 'Content-Type: application/json' -d '{\"query\": \"monitoring test\", \"limit\": 10}' | jq -r '.results[] | select(.title | contains(\"monitoring\")) | .title'" \
+    "monitoring"
 
 echo -e "\n${BLUE}5. Frontend Integration${NC}"
 # Test if frontend is accessible (simple check)

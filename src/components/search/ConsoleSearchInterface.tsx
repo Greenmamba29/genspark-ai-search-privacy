@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, Filter, Sparkles, Cpu, Menu, Map, Upload, X, BarChart3, Settings } from 'lucide-react'
+import { Search, Sparkles, Cpu, Upload, X, BarChart3, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRealTimeSearch } from '../../hooks/useRealTimeSearch'
 import GoogleStyleSearchResults from './GoogleStyleSearchResults'

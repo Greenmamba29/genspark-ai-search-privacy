@@ -115,9 +115,24 @@ class SearchService {
   }
 
   private async performMockSearch(query: SearchQuery, options?: { signal?: AbortSignal }): Promise<SearchResponse> {
+    // Check if search was aborted
+    if (options?.signal?.aborted) {
+      throw new Error('AbortError')
+    }
+
     // Simulate processing time
     const startTime = Date.now()
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500))
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(resolve, Math.random() * 1000 + 500)
+      
+      // Handle abort signal
+      if (options?.signal) {
+        options.signal.addEventListener('abort', () => {
+          clearTimeout(timeout)
+          reject(new Error('AbortError'))
+        })
+      }
+    })
 
     // Generate mock results based on query
     const mockResults: SearchResult[] = this.generateMockResults(query)

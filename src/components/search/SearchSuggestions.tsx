@@ -105,25 +105,26 @@ export default function SearchSuggestions({
   }, [searchQuery])
 
   // Handle keyboard navigation
-  const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyDown = (event: Event) => {
+    const keyboardEvent = event as KeyboardEvent
     if (!isVisible || suggestions.length === 0) return
 
-    switch (event.key) {
+    switch (keyboardEvent.key) {
       case 'ArrowDown':
-        event.preventDefault()
+        keyboardEvent.preventDefault()
         setSelectedIndex(prev => 
           prev < suggestions.length - 1 ? prev + 1 : 0
         )
         break
       case 'ArrowUp':
-        event.preventDefault()
+        keyboardEvent.preventDefault()
         setSelectedIndex(prev => 
           prev > 0 ? prev - 1 : suggestions.length - 1
         )
         break
       case 'Enter':
         if (selectedIndex >= 0) {
-          event.preventDefault()
+          keyboardEvent.preventDefault()
           onSelect(suggestions[selectedIndex].text)
         }
         break

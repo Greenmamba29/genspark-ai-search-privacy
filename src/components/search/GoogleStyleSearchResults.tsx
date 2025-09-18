@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { ExternalLink, Calendar, HardDrive, Clock, Zap, Star, Eye } from 'lucide-react'
+import { useState } from 'react'
+import { ExternalLink, Calendar, HardDrive, Zap, Star, Eye } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SearchResult } from '../../types/index'
 

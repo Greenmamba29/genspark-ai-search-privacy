@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  X, ChevronDown, ChevronRight, BarChart3, Clock, Star, Zap, Brain, Cpu,
-  Search, TrendingUp, Activity, Target, Sparkles, Eye, Calendar, 
-  ArrowUpCircle, ArrowDownCircle, Database, FileText, Settings, 
-  Moon, Sun, Monitor, Download, Upload, Trash2, BookOpen
+  X, ChevronRight, BarChart3, Clock, Zap, Brain, Cpu,
+  Search, TrendingUp, Activity, Eye, Settings, 
+  Download, Trash2
 } from 'lucide-react'
 
 interface EnhancedLeftPanelProps {
@@ -25,7 +24,6 @@ export default function EnhancedLeftPanel({ isOpen, onClose }: EnhancedLeftPanel
     new Set(['analytics', 'recent'])
   )
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h')
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system')
 
   // Mock analytics data - replace with actual data from your service
   const [analyticsData] = useState<AnalyticsData>({
