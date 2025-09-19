@@ -111,13 +111,24 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     icon: 'zap'
   },
   {
+    id: 'gpt-oss-20b',
+    name: 'gpt-oss:20b',
+    displayName: 'GPT-OSS 20B',
+    size: '14GB',
+    description: "OpenAI's open-weight models designed for powerful reasoning, agentic tasks, and versatile developer use cases.",
+    capabilities: ['Reasoning', 'Code Generation', 'Analysis'],
+    status: 'installed', // Default installed model
+    warning: 'Stretch, may run slow',
+    icon: 'brain'
+  },
+  {
     id: 'all-minilm-l6-v2',
     name: 'all-MiniLM-L6-v2',
     displayName: 'MiniLM L6 v2',
     size: '80MB',
     description: 'Lightweight sentence transformer model for semantic similarity and search.',
     capabilities: ['Semantic Search', 'Fast', 'Lightweight'],
-    status: 'installed', // Default installed model
+    status: 'available', // Available for download
     icon: 'zap'
   }
 ]
@@ -220,8 +231,8 @@ function modelReducer(state: ModelState, action: ModelAction): ModelState {
 
 export function ModelProvider({ children }: { children: ReactNode }) {
   const initialState: ModelState = {
-    installedModels: ['all-minilm-l6-v2'], // Default model is installed
-    currentModel: 'all-minilm-l6-v2', // Default active model
+    installedModels: ['gpt-oss-20b'], // Default model is installed
+    currentModel: 'gpt-oss-20b', // Default active model
     downloadingModels: new Set(),
     models: AVAILABLE_MODELS,
     isLoading: false
@@ -292,7 +303,7 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'FINISH_DOWNLOAD', payload: modelId })
       
       // If no current model is set, make this the current model
-      if (!state.currentModel || state.currentModel === 'all-minilm-l6-v2') {
+      if (!state.currentModel || state.currentModel === 'gpt-oss-20b') {
         dispatch({ type: 'SET_CURRENT_MODEL', payload: modelId })
       }
 

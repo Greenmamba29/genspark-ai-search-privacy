@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { X, Download, Check, AlertTriangle, HardDrive, Cpu, Zap } from 'lucide-react'
+import { X, Download, Check, AlertTriangle, HardDrive, Cpu, Zap, Monitor, Gauge } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { detectDeviceCapabilities, canRunModel, formatDeviceInfo, type DeviceCapabilities } from '../../utils/deviceCapabilities'
 
 interface ModelInfo {
   id: string
@@ -101,6 +102,7 @@ export default function ModelDownloadModal({
 }: ModelDownloadModalProps) {
   const [models, setModels] = useState<ModelInfo[]>(AVAILABLE_MODELS)
   const [selectedTab, setSelectedTab] = useState<'recommended' | 'all' | 'installed'>('recommended')
+  const [deviceCapabilities, setDeviceCapabilities] = useState<DeviceCapabilities | null>(null)
 
   // Update model statuses based on installed models
   useEffect(() => {
@@ -111,6 +113,13 @@ export default function ModelDownloadModal({
       }))
     )
   }, [installedModels])
+
+  // Detect device capabilities when modal opens
+  useEffect(() => {
+    if (isOpen && !deviceCapabilities) {
+      detectDeviceCapabilities().then(setDeviceCapabilities)
+    }
+  }, [isOpen, deviceCapabilities])
 
   // Simulate model download
   const handleDownload = async (modelId: string) => {
@@ -244,11 +253,31 @@ export default function ModelDownloadModal({
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Download Model</h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Based on a rough calculation, your device can run models up to 1.5b parameters.
-              </p>
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Download AI Model</h2>
+              <div className="mt-2 space-y-1">
+                {deviceCapabilities ? (
+                  <>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                      <Monitor className="w-4 h-4" />
+                      <span>{formatDeviceInfo(deviceCapabilities)}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400">
+                      <Gauge className="w-4 h-4" />
+                      <span>
+                        Recommended: {deviceCapabilities.recommendedModelSize} models
+                        {deviceCapabilities.totalMemory >= 12 ? ' (up to 20B parameters)' : 
+                         deviceCapabilities.totalMemory >= 6 ? ' (up to 8B parameters)' : 
+                         ' (up to 3.8B parameters)'}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Analyzing device capabilities...
+                  </p>
+                )}
+              </div>
             </div>
             <button
               onClick={onClose}
@@ -316,6 +345,21 @@ export default function ModelDownloadModal({
                           <span className="text-sm text-gray-500 dark:text-gray-400">
                             {model.size}
                           </span>
+                          {deviceCapabilities && (() => {
+                            const compatibility = canRunModel(model.id, deviceCapabilities)
+                            const performanceColor = {
+                              'excellent': 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+                              'good': 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20', 
+                              'acceptable': 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20',
+                              'poor': 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+                            }[compatibility.performance]
+                            
+                            return (
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${performanceColor}`}>
+                                {compatibility.performance}
+                              </span>
+                            )
+                          })()}
                           {model.warning && (
                             <div className="flex items-center space-x-1">
                               <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -329,6 +373,38 @@ export default function ModelDownloadModal({
                         <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 leading-relaxed">
                           {model.description}
                         </p>
+                        
+                        {deviceCapabilities && (() => {
+                          const compatibility = canRunModel(model.id, deviceCapabilities)
+                          return (
+                            <div className="mb-3 space-y-2">
+                              {compatibility.warnings.length > 0 && (
+                                <div className="space-y-1">
+                                  {compatibility.warnings.map((warning, index) => (
+                                    <div key={index} className="flex items-start space-x-2">
+                                      <AlertTriangle className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" />
+                                      <span className="text-xs text-orange-600 dark:text-orange-400">
+                                        {warning}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {compatibility.recommendations.length > 0 && (
+                                <div className="space-y-1">
+                                  {compatibility.recommendations.map((recommendation, index) => (
+                                    <div key={index} className="flex items-start space-x-2">
+                                      <Gauge className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                                      <span className="text-xs text-blue-600 dark:text-blue-400">
+                                        {recommendation}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()}
                         
                         <div className="flex flex-wrap gap-2">
                           {model.capabilities.map((capability) => (

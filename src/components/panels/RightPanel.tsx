@@ -17,14 +17,13 @@ import {
   AlertCircle,
   CheckCircle,
   Info,
-  Download,
   Settings,
-  HardDrive,
   Monitor
 } from 'lucide-react';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
 import { useModels } from '../../contexts/ModelContext';
 import ModelDownloadModal from '../ai/ModelDownloadModal';
+import ModelSelector from '../ai/ModelSelector';
 
 interface RightPanelProps {
   isOpen: boolean;
@@ -54,10 +53,7 @@ export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
 
   const {
     state: modelState,
-    setCurrentModel,
-    downloadModel,
-    getCurrentModelInfo,
-    getInstalledModels
+    downloadModel
   } = useModels();
 
   // Generate insights based on search patterns
@@ -458,108 +454,19 @@ export default function RightPanel({ isOpen, onClose }: RightPanelProps) {
                 {/* Models Tab */}
                 {activeTab === 'models' && (
                   <>
-                    {/* Current Model */}
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-                          <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                          <span>Active Model</span>
-                        </h3>
-                      </div>
-                      
-                      {getCurrentModelInfo() ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                              <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900 dark:text-white">
-                                {getCurrentModelInfo()?.displayName}
-                              </p>
-                              <p className="text-sm text-blue-600 dark:text-blue-400">
-                                {getCurrentModelInfo()?.size} • {getCurrentModelInfo()?.capabilities.join(', ')}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {getCurrentModelInfo()?.description}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-slate-600 dark:text-slate-400">No model selected</p>
-                      )}
-                    </div>
-
-                    {/* Installed Models */}
+                    {/* AI Model Selector */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-                          <HardDrive className="w-5 h-5 text-green-500" />
-                          <span>Installed Models</span>
-                        </h3>
-                        <button
-                          onClick={() => setShowModelDownload(true)}
-                          className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Download</span>
-                        </button>
-                      </div>
-
-                      <div className="space-y-2">
-                        {getInstalledModels().map((model) => (
-                          <motion.div
-                            key={model.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`p-3 rounded-lg border transition-all cursor-pointer ${
-                              modelState.currentModel === model.id
-                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600'
-                            }`}
-                            onClick={() => setCurrentModel(model.id)}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
-                                <Brain className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                  <p className="font-medium text-slate-900 dark:text-white">
-                                    {model.displayName}
-                                  </p>
-                                  {modelState.currentModel === model.id && (
-                                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs rounded-full">
-                                      Active
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                  {model.size} • {model.capabilities.slice(0, 2).join(', ')}
-                                </p>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                        
-                        {getInstalledModels().length === 0 && (
-                          <div className="text-center py-8">
-                            <HardDrive className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                            <p className="text-slate-600 dark:text-slate-400 text-sm">
-                              No models installed yet
-                            </p>
-                            <button
-                              onClick={() => setShowModelDownload(true)}
-                              className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
-                            >
-                              Download Models
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+                        <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <span>AI Model Selection</span>
+                      </h3>
+                      
+                      <ModelSelector 
+                        compact={false} 
+                        onModelDownloadClick={() => setShowModelDownload(true)}
+                      />
                     </div>
+
                   </>
                 )}
 

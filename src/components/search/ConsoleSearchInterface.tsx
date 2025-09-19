@@ -8,6 +8,8 @@ import SearchSuggestions from './SearchSuggestions'
 import EnhancedLeftPanel from '../panels/EnhancedLeftPanel'
 import RightPanel from '../panels/RightPanel'
 import FileUploadComponent from '../ui/FileUploadComponent'
+import ModelSelector from '../ai/ModelSelector'
+import ModelDownloadModal from '../ai/ModelDownloadModal'
 
 export default function ConsoleSearchInterface() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -15,6 +17,7 @@ export default function ConsoleSearchInterface() {
   const [leftPanelOpen, setLeftPanelOpen] = useState(false)
   const [rightPanelOpen, setRightPanelOpen] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [showModelDownload, setShowModelDownload] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
 
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -36,7 +39,7 @@ export default function ConsoleSearchInterface() {
     addToHistory
   } = useRealTimeSearch(300) // 300ms debounce
 
-  const { getCurrentModelInfo } = useModels()
+  const { getCurrentModelInfo, downloadModel, state: modelState } = useModels()
 
   // Handle real-time search as user types
   useEffect(() => {
@@ -172,7 +175,7 @@ export default function ConsoleSearchInterface() {
                     ) : (
                       <Sparkles className="w-4 h-4 text-yellow-500" />
                     )}
-                    <span>{getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'}</span>
+                    <span>{getCurrentModelInfo()?.name || 'gpt-oss:20b'}</span>
                   </div>
                   <span>•</span>
                   <span>{isBackendConnected ? 'Local AI' : 'Demo Mode'}</span>
@@ -253,6 +256,12 @@ export default function ConsoleSearchInterface() {
               >
                 <Upload className="w-5 h-5" />
               </motion.button>
+              
+              {/* Model Selector */}
+              <ModelSelector 
+                compact={true} 
+                onModelDownloadClick={() => setShowModelDownload(true)}
+              />
             </div>
 
             {/* Right Controls */}
@@ -369,11 +378,11 @@ export default function ConsoleSearchInterface() {
           <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
             <div className="flex items-center space-x-4">
               {isSearching ? (
-                <span>Searching with {getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'} • Local AI</span>
+                <span>Searching with {getCurrentModelInfo()?.name || 'gpt-oss:20b'} • Local AI</span>
               ) : isBackendConnected ? (
-                <span>Ready to search with {getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'} • Local AI</span>
+                <span>Ready to search with {getCurrentModelInfo()?.name || 'gpt-oss:20b'} • Local AI</span>
               ) : (
-                <span>Running with {getCurrentModelInfo()?.name || 'all-MiniLM-L6-v2'} • Demo Mode</span>
+                <span>Running with {getCurrentModelInfo()?.name || 'gpt-oss:20b'} • Demo Mode</span>
               )}
             </div>
             
@@ -385,6 +394,18 @@ export default function ConsoleSearchInterface() {
           </div>
         </div>
       </div>
+      
+      {/* Model Download Modal */}
+      <ModelDownloadModal
+        isOpen={showModelDownload}
+        onClose={() => setShowModelDownload(false)}
+        onModelSelect={(modelId) => {
+          downloadModel(modelId)
+          setShowModelDownload(false)
+        }}
+        installedModels={modelState.installedModels}
+        currentModel={modelState.currentModel}
+      />
     </div>
   )
 }
