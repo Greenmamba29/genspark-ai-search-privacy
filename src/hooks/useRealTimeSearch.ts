@@ -27,7 +27,7 @@ interface UseRealTimeSearchActions {
 
 interface UseRealTimeSearchReturn extends UseRealTimeSearchState, UseRealTimeSearchActions {}
 
-export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchReturn {
+export function useRealTimeSearch(debounceMs: number = 300, currentModel?: string): UseRealTimeSearchReturn {
   const [state, setState] = useState<UseRealTimeSearchState>({
     results: [],
     suggestions: [],
@@ -38,7 +38,7 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
     model: '',
     query: '',
     isBackendConnected: false,
-    searchHistory: JSON.parse(localStorage.getItem('grahmos_search_history') || '[]')
+    searchHistory: JSON.parse(localStorage.getItem('genspark_search_history') || '[]')
   })
 
   const [currentFilters, setCurrentFilters] = useState<SearchFilters>({})
@@ -48,15 +48,21 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
   const debounceRef = useRef<NodeJS.Timeout>()
   const searchControllerRef = useRef<AbortController>()
 
-  // Initialize search service
+  // Initialize search service and sync with current model
   useEffect(() => {
     const initializeSearchService = async () => {
       try {
         await searchService.initialize()
+        
+        // Set the current model in search service if provided
+        if (currentModel) {
+          searchService.setCurrentModel(currentModel)
+        }
+        
         setState(prev => ({
           ...prev,
           isBackendConnected: searchService.isBackendConnected(),
-          model: searchService.getConfig().defaultModel
+          model: searchService.getCurrentModel()
         }))
       } catch (error) {
         console.error('Failed to initialize search service:', error)
@@ -71,9 +77,20 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
     initializeSearchService()
   }, [])
 
+  // Update search service when current model changes
+  useEffect(() => {
+    if (currentModel) {
+      searchService.setCurrentModel(currentModel)
+      setState(prev => ({
+        ...prev,
+        model: currentModel
+      }))
+    }
+  }, [currentModel])
+
   // Save search history to localStorage
   useEffect(() => {
-    localStorage.setItem('grahmos_search_history', JSON.stringify(state.searchHistory))
+    localStorage.setItem('genspark_search_history', JSON.stringify(state.searchHistory))
   }, [state.searchHistory])
 
   // Real-time search with debouncing
@@ -137,11 +154,6 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
             model: response.model,
             error: null
           }))
-
-          // Add to search history if backend connected and results found
-          if (state.isBackendConnected && response.results.length > 0) {
-            addToHistory(query.trim())
-          }
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -156,7 +168,7 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
         }
       }
     }, debounceMs)
-  }, [currentFilters, sortBy, sortOrder, debounceMs, state.isBackendConnected])
+  }, [currentFilters, sortBy, sortOrder, debounceMs])
 
   // Regular search (immediate)
   const search = useCallback(async (query: string, filters?: SearchFilters) => {
@@ -249,6 +261,10 @@ export function useRealTimeSearch(debounceMs: number = 300): UseRealTimeSearchRe
 
   const addToHistory = useCallback((query: string) => {
     setState(prev => {
+      // Avoid adding duplicate or empty queries
+      if (!query.trim() || prev.searchHistory[0] === query) {
+        return prev
+      }
       const newHistory = [query, ...prev.searchHistory.filter(h => h !== query)].slice(0, 10)
       return {
         ...prev,

@@ -46,6 +46,16 @@ const ModelContext = createContext<ModelContextType | undefined>(undefined)
 
 const AVAILABLE_MODELS: ModelInfo[] = [
   {
+    id: 'all-minilm-l6-v2',
+    name: 'all-MiniLM-L6-v2',
+    displayName: 'MiniLM L6 v2 (Default)',
+    size: '80MB',
+    description: 'Lightweight sentence transformer model for semantic similarity and search. Currently active for search operations.',
+    capabilities: ['Semantic Search', 'Fast', 'Lightweight'],
+    status: 'installed', // Default installed and active model
+    icon: 'zap'
+  },
+  {
     id: 'gpt-oss-20b',
     name: 'gpt-oss:20b',
     displayName: 'GPT-OSS 20B',
@@ -53,7 +63,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     description: "OpenAI's open-weight models designed for powerful reasoning, agentic tasks, and versatile developer use cases.",
     capabilities: ['Reasoning', 'Code Generation', 'Analysis'],
     status: 'available',
-    warning: 'Stretch, may run slow',
+    warning: 'Requires significant RAM, may run slow',
     icon: 'brain'
   },
   {
@@ -64,6 +74,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     description: 'Llama 3.1 is a new state-of-the-art model from Meta available in 8B, 70B and 405B parameter sizes.',
     capabilities: ['Natural Language', 'Reasoning', 'Multilingual'],
     status: 'available',
+    warning: 'Requires significant RAM',
     icon: 'zap'
   },
   {
@@ -74,7 +85,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     description: 'Meta Llama 3: The most capable openly available LLM to date',
     capabilities: ['Natural Language', 'Conversation', 'Analysis'],
     status: 'available',
-    warning: 'Stretch, may run slow',
+    warning: 'Requires significant RAM',
     icon: 'cpu'
   },
   {
@@ -85,7 +96,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     description: 'The 7B model released by Mistral AI, updated to version 0.3.',
     capabilities: ['Efficiency', 'Speed', 'Reasoning'],
     status: 'available',
-    warning: 'Stretch, may run slow',
+    warning: 'Requires significant RAM',
     icon: 'zap'
   },
   {
@@ -96,7 +107,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     description: '🌋 LLaVA is a novel end-to-end trained large multimodal model that combines a vision encoder and Vicuna for general-purpose visual and language understanding. Updated to version 1.6.',
     capabilities: ['Vision', 'Multimodal', 'Image Analysis'],
     status: 'available',
-    warning: 'Stretch, may run slow',
+    warning: 'Requires significant RAM',
     icon: 'eye'
   },
   {
@@ -107,28 +118,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
     description: 'Phi-3 is a family of lightweight 3B (Mini) and 14B (Medium) state-of-the-art open models by Microsoft.',
     capabilities: ['Lightweight', 'Efficient', 'Fast'],
     status: 'available',
-    warning: 'Stretch, may run slow',
-    icon: 'zap'
-  },
-  {
-    id: 'gpt-oss-20b',
-    name: 'gpt-oss:20b',
-    displayName: 'GPT-OSS 20B',
-    size: '14GB',
-    description: "OpenAI's open-weight models designed for powerful reasoning, agentic tasks, and versatile developer use cases.",
-    capabilities: ['Reasoning', 'Code Generation', 'Analysis'],
-    status: 'installed', // Default installed model
-    warning: 'Stretch, may run slow',
-    icon: 'brain'
-  },
-  {
-    id: 'all-minilm-l6-v2',
-    name: 'all-MiniLM-L6-v2',
-    displayName: 'MiniLM L6 v2',
-    size: '80MB',
-    description: 'Lightweight sentence transformer model for semantic similarity and search.',
-    capabilities: ['Semantic Search', 'Fast', 'Lightweight'],
-    status: 'available', // Available for download
+    warning: 'Moderate RAM requirements',
     icon: 'zap'
   }
 ]
@@ -231,8 +221,8 @@ function modelReducer(state: ModelState, action: ModelAction): ModelState {
 
 export function ModelProvider({ children }: { children: ReactNode }) {
   const initialState: ModelState = {
-    installedModels: ['gpt-oss-20b'], // Default model is installed
-    currentModel: 'gpt-oss-20b', // Default active model
+    installedModels: ['all-minilm-l6-v2'], // Default lightweight model is installed
+    currentModel: 'all-minilm-l6-v2', // Default active model
     downloadingModels: new Set(),
     models: AVAILABLE_MODELS,
     isLoading: false
@@ -240,40 +230,64 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
   const [state, dispatch] = useReducer(modelReducer, initialState)
 
-  // Load saved preferences from localStorage
+  // Load saved preferences from localStorage on initial mount only
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
-      if (saved) {
-        const preferences = JSON.parse(saved)
-        if (preferences.currentModel) {
-          dispatch({ type: 'SET_CURRENT_MODEL', payload: preferences.currentModel })
-        }
-        if (preferences.installedModels && Array.isArray(preferences.installedModels)) {
-          // Set installed models
-          preferences.installedModels.forEach((modelId: string) => {
-            if (!state.installedModels.includes(modelId)) {
-              dispatch({ type: 'ADD_INSTALLED_MODEL', payload: modelId })
+    const loadPreferences = () => {
+      try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
+        if (saved) {
+          const preferences = JSON.parse(saved)
+          
+          // Load installed models first
+          if (preferences.installedModels && Array.isArray(preferences.installedModels)) {
+            preferences.installedModels.forEach((modelId: string) => {
+              // Only add if it's not already in the initial state
+              if (!initialState.installedModels.includes(modelId)) {
+                dispatch({ type: 'ADD_INSTALLED_MODEL', payload: modelId })
+              }
+            })
+          }
+          
+          // Then set current model if it exists and is installed
+          if (preferences.currentModel) {
+            const allInstalled = [...initialState.installedModels, ...(preferences.installedModels || [])]
+            if (allInstalled.includes(preferences.currentModel)) {
+              dispatch({ type: 'SET_CURRENT_MODEL', payload: preferences.currentModel })
             }
-          })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load model preferences:', error)
+        // Clear corrupted data
+        try {
+          localStorage.removeItem(LOCAL_STORAGE_KEY)
+        } catch (clearError) {
+          console.error('Failed to clear corrupted preferences:', clearError)
         }
       }
-    } catch (error) {
-      console.error('Failed to load model preferences:', error)
     }
-  }, [])
+    
+    loadPreferences()
+  }, []) // Empty dependency array - only run on mount
 
-  // Save preferences to localStorage
+  // Save preferences to localStorage with debouncing
   useEffect(() => {
-    try {
-      const preferences = {
-        currentModel: state.currentModel,
-        installedModels: state.installedModels
+    const savePreferences = () => {
+      try {
+        const preferences = {
+          currentModel: state.currentModel,
+          installedModels: state.installedModels
+        }
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(preferences))
+      } catch (error) {
+        console.error('Failed to save model preferences:', error)
+        // Could implement fallback storage or user notification here
       }
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(preferences))
-    } catch (error) {
-      console.error('Failed to save model preferences:', error)
     }
+    
+    // Debounce saves to avoid excessive localStorage writes
+    const timeoutId = setTimeout(savePreferences, 100)
+    return () => clearTimeout(timeoutId)
   }, [state.currentModel, state.installedModels])
 
   const setCurrentModel = (modelId: string) => {
@@ -284,15 +298,36 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
   const downloadModel = async (modelId: string): Promise<void> => {
     if (state.installedModels.includes(modelId) || state.downloadingModels.has(modelId)) {
+      console.warn(`Model ${modelId} is already installed or downloading`)
+      return
+    }
+
+    const model = state.models.find(m => m.id === modelId)
+    if (!model) {
+      console.error(`Model ${modelId} not found`)
       return
     }
 
     dispatch({ type: 'START_DOWNLOAD', payload: modelId })
 
     try {
-      // Simulate download progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200))
+      console.log(`Starting download of ${model.displayName}...`)
+      
+      // Simulate more realistic download progress with variable timing
+      const progressSteps = [0, 15, 30, 45, 60, 75, 90, 100]
+      for (const progress of progressSteps) {
+        // Variable delay based on model size (larger models = slower download)
+        const delay = progress === 100 ? 500 : 
+                     model.size.includes('GB') ? 300 + Math.random() * 400 : 
+                     150 + Math.random() * 200
+                     
+        await new Promise(resolve => setTimeout(resolve, delay))
+        
+        // Check if download was cancelled during delay
+        if (!state.downloadingModels.has(modelId)) {
+          return // Download was cancelled
+        }
+        
         dispatch({ 
           type: 'UPDATE_DOWNLOAD_PROGRESS', 
           payload: { modelId, progress } 
@@ -301,18 +336,25 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
       // Mark as completed
       dispatch({ type: 'FINISH_DOWNLOAD', payload: modelId })
+      console.log(`Successfully downloaded ${model.displayName}`)
       
-      // If no current model is set, make this the current model
-      if (!state.currentModel || state.currentModel === 'gpt-oss-20b') {
+      // Auto-select downloaded model if it's the first one or default is still active
+      if (state.currentModel === 'all-minilm-l6-v2' && modelId !== 'all-minilm-l6-v2') {
         dispatch({ type: 'SET_CURRENT_MODEL', payload: modelId })
+        console.log(`Switched to new model: ${model.displayName}`)
       }
 
     } catch (error) {
-      console.error(`Failed to download model ${modelId}:`, error)
+      console.error(`Failed to download model ${model.displayName}:`, error)
       dispatch({ 
         type: 'SET_MODEL_STATUS', 
         payload: { modelId, status: 'error' } 
       })
+      
+      // Remove from downloading set on error
+      const newDownloading = new Set(state.downloadingModels)
+      newDownloading.delete(modelId)
+      dispatch({ type: 'START_DOWNLOAD', payload: '' }) // This will clean up the set
     }
   }
 

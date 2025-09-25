@@ -17,9 +17,11 @@ export interface SearchResponse {
 class SearchService {
   private config: SearchConfig
   private isConnected: boolean = false
+  private currentModel: string
 
   constructor(config: SearchConfig) {
     this.config = config
+    this.currentModel = config.defaultModel
   }
 
   async initialize(): Promise<void> {
@@ -91,7 +93,7 @@ class SearchService {
           filters: query.filters,
           sortBy: query.sortBy,
           sortOrder: query.sortOrder,
-          model: this.config.defaultModel
+          model: this.currentModel
         }),
         signal: options?.signal || AbortSignal.timeout(this.config.timeout)
       })
@@ -105,7 +107,7 @@ class SearchService {
         results: data.results || [],
         totalResults: data.totalResults || 0,
         processingTime: data.processingTime || 0,
-        model: data.model || this.config.defaultModel,
+        model: data.model || this.currentModel,
         query: query.query
       }
     } catch (error) {
@@ -141,7 +143,7 @@ class SearchService {
       results: mockResults,
       totalResults: mockResults.length,
       processingTime: Date.now() - startTime,
-      model: this.config.defaultModel,
+      model: this.currentModel,
       query: query.query
     }
   }
@@ -281,6 +283,14 @@ class SearchService {
   getConfig(): SearchConfig {
     return { ...this.config }
   }
+
+  setCurrentModel(modelId: string): void {
+    this.currentModel = modelId
+  }
+
+  getCurrentModel(): string {
+    return this.currentModel
+  }
 }
 
 // Create default search service instance
@@ -288,7 +298,7 @@ const defaultConfig: SearchConfig = {
   backendUrl: process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3001' 
     : window.location.origin,
-  defaultModel: 'Xenova/all-MiniLM-L6-v2', // Lightweight GPT OSS equivalent
+  defaultModel: 'all-MiniLM-L6-v2', // Align with ModelContext default
   timeout: 30000 // 30 seconds
 }
 

@@ -23,6 +23,10 @@ export default function ConsoleSearchInterface() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const searchContainerRef = useRef<HTMLDivElement>(null)
 
+  const { getCurrentModelInfo, downloadModel, state: modelState } = useModels()
+  const currentModelId = modelState.currentModel
+  const currentModelName = getCurrentModelInfo()?.name || currentModelId
+
   const {
     results,
     isSearching,
@@ -37,9 +41,8 @@ export default function ConsoleSearchInterface() {
     search,
     clearResults,
     addToHistory
-  } = useRealTimeSearch(300) // 300ms debounce
+  } = useRealTimeSearch(300, currentModelId) // Pass current model to hook
 
-  const { getCurrentModelInfo, downloadModel, state: modelState } = useModels()
 
   // Handle real-time search as user types
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function ConsoleSearchInterface() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchQuery(value)
-    setShowSuggestions(value.length > 0 || !value.trim())
+    setShowSuggestions(value.trim().length > 0)
   }
 
   // Handle manual search (Enter key)
@@ -76,7 +79,7 @@ export default function ConsoleSearchInterface() {
   // Handle input focus/blur
   const handleFocus = () => {
     setIsFocused(true)
-    setShowSuggestions(searchQuery.length > 0 || !searchQuery.trim())
+    setShowSuggestions(searchQuery.trim().length > 0)
   }
 
   const handleBlur = () => {
@@ -128,7 +131,7 @@ export default function ConsoleSearchInterface() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Upload Files to Grahmos</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Upload Files to GenSpark AI</h2>
                 <button
                   onClick={() => setShowUpload(false)}
                   className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -163,22 +166,29 @@ export default function ConsoleSearchInterface() {
                 className="text-center mb-16"
               >
                 <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
-                  Grahmos
+                  GenSpark AI
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400">
-                  AI-Powered Semantic Search with Local GPT-OSS
+                  AI-Powered Semantic Search with Local Models
                 </p>
-                <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-500 dark:text-gray-500">
-                  <div className="flex items-center space-x-1">
-                    {isBackendConnected ? (
-                      <Cpu className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Sparkles className="w-4 h-4 text-yellow-500" />
-                    )}
-                    <span>{getCurrentModelInfo()?.name || 'gpt-oss:20b'}</span>
+                <div className="mt-4 flex flex-col items-center justify-center space-y-2">
+                  <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      {isBackendConnected ? (
+                        <Cpu className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Sparkles className="w-4 h-4 text-yellow-500" />
+                      )}
+                      <span>{currentModelName}</span>
+                    </div>
+                    <span>•</span>
+                    <span>{isBackendConnected ? 'Local AI Connected' : 'Demo Mode - Mock Data'}</span>
                   </div>
-                  <span>•</span>
-                  <span>{isBackendConnected ? 'Local AI' : 'Demo Mode'}</span>
+                  {!isBackendConnected && (
+                    <div className="text-xs text-gray-400 dark:text-gray-500 text-center max-w-md">
+                      Currently showing sample results. Connect a backend service for actual AI search functionality.
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -305,7 +315,7 @@ export default function ConsoleSearchInterface() {
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask Grahmos AI anything... (e.g., 'Find documents about machine learning')"
+                    placeholder="Ask GenSpark AI anything... (e.g., 'Find documents about machine learning')"
                     className="flex-1 py-4 text-lg bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                   
@@ -378,11 +388,11 @@ export default function ConsoleSearchInterface() {
           <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
             <div className="flex items-center space-x-4">
               {isSearching ? (
-                <span>Searching with {getCurrentModelInfo()?.name || 'gpt-oss:20b'} • Local AI</span>
+                <span>Searching with {currentModelName} • {isBackendConnected ? 'Local AI' : 'Demo Mode'}</span>
               ) : isBackendConnected ? (
-                <span>Ready to search with {getCurrentModelInfo()?.name || 'gpt-oss:20b'} • Local AI</span>
+                <span>Ready to search with {currentModelName} • Local AI</span>
               ) : (
-                <span>Running with {getCurrentModelInfo()?.name || 'gpt-oss:20b'} • Demo Mode</span>
+                <span>Running with {currentModelName} • Demo Mode</span>
               )}
             </div>
             
