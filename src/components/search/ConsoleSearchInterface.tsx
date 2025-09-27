@@ -316,8 +316,8 @@ export default function ConsoleSearchInterface() {
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask Grahmos AI anything... (e.g., 'Find documents about machine learning')"
-                    className="flex-1 py-4 text-lg bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder={searchQuery ? "" : "Ask Grahmos AI anything... (e.g., 'Find documents about machine learning')"}
+                    className="flex-1 py-4 text-lg bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 relative z-10"
                   />
                   
                   <div className="flex items-center space-x-3 pr-6 pl-3">
@@ -372,8 +372,8 @@ export default function ConsoleSearchInterface() {
             </div>
 
             {/* Search Suggestions - Positioned Above Search Bar */}
-            <div className="absolute bottom-full left-0 right-0 mb-4 z-[110]">
-              <div className="relative">
+            {showSuggestions && (
+              <div className="absolute bottom-full left-0 right-0 mb-4 z-[110]">
                 <SearchSuggestions
                   isVisible={showSuggestions}
                   searchQuery={searchQuery}
@@ -382,7 +382,7 @@ export default function ConsoleSearchInterface() {
                   isBackendConnected={isBackendConnected}
                 />
               </div>
-            </div>
+            )}
           </div>
 
           {/* Status Bar */}

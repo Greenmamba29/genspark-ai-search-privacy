@@ -7,7 +7,7 @@ interface SearchSuggestionsProps {
   isVisible: boolean
   searchQuery: string
   onSelect: (suggestion: string) => void
-  model: string
+  model?: string
   isBackendConnected: boolean
 }
 
@@ -22,7 +22,6 @@ export default function SearchSuggestions({
   isVisible,
   searchQuery,
   onSelect,
-  model,
   isBackendConnected
 }: SearchSuggestionsProps) {
   const [selectedIndex, setSelectedIndex] = useState(-1)
@@ -166,7 +165,7 @@ export default function SearchSuggestions({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.95 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="absolute top-full left-0 right-0 mt-3 bg-white/98 dark:bg-slate-800/98 rounded-xl border border-gray-200 dark:border-gray-600 shadow-2xl z-[100] overflow-hidden backdrop-blur-md"
+        className="w-full bg-white/98 dark:bg-slate-800/98 rounded-xl border border-gray-200 dark:border-gray-600 shadow-2xl z-[100] overflow-hidden backdrop-blur-md"
         style={{ 
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
         }}
@@ -176,7 +175,7 @@ export default function SearchSuggestions({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
               <Sparkles className="w-4 h-4 text-purple-500" />
-              <span>AI-powered suggestions with {model.split('/').pop()}</span>
+              <span>Smart suggestions</span>
             </div>
             <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
               {isBackendConnected ? 'Local AI' : 'Demo Mode'}
