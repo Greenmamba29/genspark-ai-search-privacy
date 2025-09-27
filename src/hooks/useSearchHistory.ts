@@ -31,7 +31,7 @@ export function useSearchHistory() {
 
   // Load search history from localStorage on component mount
   useEffect(() => {
-    const savedHistory = localStorage.getItem('genspark-search-history');
+    const savedHistory = localStorage.getItem('grahmos-search-history');
     if (savedHistory) {
       try {
         const parsed = JSON.parse(savedHistory) as SearchEntry[];
@@ -47,7 +47,7 @@ export function useSearchHistory() {
   // Save search history to localStorage whenever it changes
   useEffect(() => {
     if (searchHistory.length > 0) {
-      localStorage.setItem('genspark-search-history', JSON.stringify(searchHistory));
+      localStorage.setItem('grahmos-search-history', JSON.stringify(searchHistory));
       updateAnalytics(searchHistory);
     }
   }, [searchHistory]);
@@ -184,7 +184,7 @@ export function useSearchHistory() {
   // Clear search history
   const clearHistory = useCallback(() => {
     setSearchHistory([]);
-    localStorage.removeItem('genspark-search-history');
+    localStorage.removeItem('grahmos-search-history');
     setAnalytics({
       totalSearches: 0,
       averageProcessingTime: 0,
@@ -213,7 +213,7 @@ export function useSearchHistory() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `genspark-search-history-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `grahmos-search-history-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

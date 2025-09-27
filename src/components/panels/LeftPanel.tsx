@@ -66,7 +66,7 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
 
   // Initialize theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('genspark-theme') as 'light' | 'dark' | 'system' | null;
+    const savedTheme = localStorage.getItem('grahmos-theme') as 'light' | 'dark' | 'system' | null;
     if (savedTheme) {
       setTheme(savedTheme);
     }
@@ -74,7 +74,7 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
 
   // Load saved searches from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('genspark-saved-searches');
+    const saved = localStorage.getItem('grahmos-saved-searches');
     if (saved) {
       try {
         setSavedSearches(JSON.parse(saved));
@@ -87,7 +87,7 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
   // Theme handler
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
-    localStorage.setItem('genspark-theme', newTheme);
+    localStorage.setItem('grahmos-theme', newTheme);
     
     // Apply theme immediately
     if (newTheme === 'system') {
@@ -123,14 +123,14 @@ export default function LeftPanel({ isOpen, onClose }: LeftPanelProps) {
 
     const updated = [...savedSearches, newSavedSearch];
     setSavedSearches(updated);
-    localStorage.setItem('genspark-saved-searches', JSON.stringify(updated));
+    localStorage.setItem('grahmos-saved-searches', JSON.stringify(updated));
   };
 
   // Delete saved search
   const deleteSavedSearch = (id: string) => {
     const updated = savedSearches.filter(search => search.id !== id);
     setSavedSearches(updated);
-    localStorage.setItem('genspark-saved-searches', JSON.stringify(updated));
+    localStorage.setItem('grahmos-saved-searches', JSON.stringify(updated));
   };
 
   // Import search history file

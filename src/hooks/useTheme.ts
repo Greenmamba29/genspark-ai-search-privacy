@@ -15,7 +15,7 @@ export function useTheme(): UseThemeReturn {
   // Get initial theme from localStorage or default to 'system'
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'system'
-    const stored = localStorage.getItem('genspark.theme') as Theme
+    const stored = localStorage.getItem('grahmos.theme') as Theme
     return stored || 'system'
   })
 
@@ -35,7 +35,7 @@ export function useTheme(): UseThemeReturn {
     root.classList.add(resolvedTheme)
     
     // Store preference in localStorage
-    localStorage.setItem('genspark.theme', theme)
+    localStorage.setItem('grahmos.theme', theme)
     
     // Update meta theme color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')

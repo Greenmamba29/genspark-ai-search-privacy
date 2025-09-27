@@ -396,7 +396,7 @@ ps aux | grep node
 redis-cli ping
 
 # Monitor message traffic
-redis-cli monitor | grep "genspark"
+redis-cli monitor | grep "grahmos"
 
 # Verify agent registration
 grep "Agent registered" logs/application.log

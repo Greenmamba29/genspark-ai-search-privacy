@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import type { ElementType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -34,7 +35,7 @@ interface InsightCard {
   id: string;
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: ElementType;
   color: string;
   priority: 'high' | 'medium' | 'low';
   actionable: boolean;

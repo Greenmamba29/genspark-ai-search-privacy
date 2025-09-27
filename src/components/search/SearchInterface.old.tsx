@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, Filter, Grid, List, Sparkles, Menu, Map } from 'lucide-react'
+import { Search, Filter, Grid, List, Sparkles, Menu, MapPin } from 'lucide-react'
 import LeftPanel from '../panels/LeftPanel'
 import RightPanel from '../panels/RightPanel'
 
@@ -140,7 +140,7 @@ export default function SearchInterface() {
             }`}
             title="Insights Hub"
           >
-            <Map className="w-5 h-5" />
+            <MapPin className="w-5 h-5" />
           </button>
         </div>
 

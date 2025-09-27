@@ -1013,8 +1013,8 @@ releases/
 │   ├── GrahmosSearchSetup.exe
 │   └── install-windows.bat
 ├── linux/
-│   ├── genspark-search.deb
-│   ├── genspark-search.rpm
+│   ├── grahmos-search.deb
+│   ├── grahmos-search.rpm
 │   └── install-linux.sh
 └── docker/
     ├── Dockerfile

@@ -13,7 +13,7 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
-    "docker:build": "docker build -t genspark-backend .",
+    "docker:build": "docker build -t grahmos-backend .",
     "setup-mcps": "./scripts/setup-mcps.sh",
     "test-mcps": "./scripts/test-mcp-simple.sh",
     "mcp-demo": "node scripts/mcp-demo.js",

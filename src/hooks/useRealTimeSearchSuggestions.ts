@@ -74,7 +74,7 @@ export function useRealTimeSearchSuggestions() {
   const [groupedSuggestions, setGroupedSuggestions] = useState<SuggestionGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const { getRecentSearches, getPopularSearches } = useSearchHistory();
 

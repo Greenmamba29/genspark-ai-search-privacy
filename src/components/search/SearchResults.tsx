@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { 
-  File, 
-  FileText, 
+  File as FileIcon, 
+  FileText,
   Video, 
   Code, 
   Calendar, 
@@ -83,7 +83,7 @@ export default function SearchResults({
       default:
         if (['zip', 'tar', 'gz'].includes(ext)) return <Archive {...iconProps} className="w-5 h-5 text-orange-600" />
         if (['mp3', 'wav', 'flac'].includes(ext)) return <Music {...iconProps} className="w-5 h-5 text-pink-500" />
-        return <File {...iconProps} className="w-5 h-5 text-gray-500" />
+        return <FileIcon {...iconProps} className="w-5 h-5 text-gray-500" />
     }
   }
 

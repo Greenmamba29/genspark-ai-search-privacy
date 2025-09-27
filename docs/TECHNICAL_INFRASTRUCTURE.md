@@ -124,7 +124,7 @@ Installation:
   
 Configuration:
   persist_directory: "./data/chroma"
-  collection_name: "genspark_documents"
+  collection_name: "grahmos_documents"
   distance_function: "cosine"
   index_type: "hnsw"
   
@@ -408,7 +408,7 @@ Cloud Deployment (Scale):
 version: '3.8'
 
 services:
-  genspark-app:
+  grahmos-app:
     build: .
     ports:
       - "3000:3000"
@@ -457,20 +457,20 @@ services:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: genspark-search
+  name: grahmos-search
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: genspark-search
+      app: grahmos-search
   template:
     metadata:
       labels:
-        app: genspark-search
+        app: grahmos-search
     spec:
       containers:
       - name: app
-        image: genspark/ai-search:latest
+        image: grahmos/ai-search:latest
         ports:
         - containerPort: 3000
         resources:
@@ -488,10 +488,10 @@ spec:
       volumes:
       - name: data-volume
         persistentVolumeClaim:
-          claimName: genspark-data
+          claimName: grahmos-data
       - name: model-cache
         persistentVolumeClaim:
-          claimName: genspark-models
+          claimName: grahmos-models
 ```
 
 ---

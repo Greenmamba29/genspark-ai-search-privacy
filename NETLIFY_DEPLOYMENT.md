@@ -52,7 +52,7 @@ If you need to manually deploy:
 1. **Upload the dist folder** to Netlify:
    ```bash
    # The dist folder is ready at:
-   /Users/paco/Downloads/Grahmos-AI-Search/dist/
+   /Users/paco/Downloads/grahmos-ai-search-privacy/dist/
    ```
 
 2. **Drag and drop** the entire `dist` folder to Netlify dashboard
@@ -85,9 +85,9 @@ Instead of the basic interface, users will now experience:
 ### 🔗 **Deployment URLs**
 
 Your enhanced UI is now LIVE at:
-- **Production**: `https://genspark-privacy-ai.netlify.app` ✅ **DEPLOYED**
-- **Unique Deploy**: `https://68cb22c0b53921963ad59161--genspark-privacy-ai.netlify.app`
-- **Admin Dashboard**: `https://app.netlify.com/projects/genspark-privacy-ai`
+- **Production**: `https://grahmos-privacy-ai.netlify.app` ✅ **DEPLOYED**
+- **Unique Deploy**: `https://68cb22c0b53921963ad59161--grahmos-privacy-ai.netlify.app`
+- **Admin Dashboard**: `https://app.netlify.com/projects/grahmos-privacy-ai`
 
 ### 📈 **Performance Optimizations**
 
@@ -125,4 +125,4 @@ Your enhanced Grahmos AI Search interface with modern UI, advanced analytics, an
 *Generated: 2025-09-17T20:56:28Z*  
 *Deployed: 2025-09-17T21:06:19Z* ✅  
 *Commit: 825596f - Enhanced UI with Deployment Docs*  
-*Live URL: https://genspark-privacy-ai.netlify.app*
+*Live URL: https://grahmos-privacy-ai.netlify.app*

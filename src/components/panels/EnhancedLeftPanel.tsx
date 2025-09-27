@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ComponentType } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, ChevronRight, BarChart3, Clock, Zap, Brain, Cpu,
@@ -79,7 +80,7 @@ export default function EnhancedLeftPanel({ isOpen, onClose }: EnhancedLeftPanel
   }: { 
     id: string
     title: string
-    icon: React.ComponentType<{ className?: string }>
+    icon: ComponentType<{ className?: string }>
     count?: number 
   }) => (
     <button

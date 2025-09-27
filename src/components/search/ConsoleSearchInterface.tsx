@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import type { ChangeEvent, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Search, Sparkles, Cpu, Upload, X, BarChart3, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRealTimeSearch } from '../../hooks/useRealTimeSearch'
@@ -52,7 +53,7 @@ export default function ConsoleSearchInterface() {
   }, [searchQuery, query, searchRealTime])
 
   // Handle search input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchQuery(value)
     setShowSuggestions(value.trim().length > 0)
@@ -89,7 +90,7 @@ export default function ConsoleSearchInterface() {
   }
 
   // Handle keyboard events
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: ReactKeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       handleSearch()
@@ -131,7 +132,7 @@ export default function ConsoleSearchInterface() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Upload Files to GenSpark AI</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Upload Files to Grahmos AI</h2>
                 <button
                   onClick={() => setShowUpload(false)}
                   className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -166,7 +167,7 @@ export default function ConsoleSearchInterface() {
                 className="text-center mb-16"
               >
                 <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
-                  GenSpark AI
+                  Grahmos AI
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400">
                   AI-Powered Semantic Search with Local Models
@@ -315,7 +316,7 @@ export default function ConsoleSearchInterface() {
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask GenSpark AI anything... (e.g., 'Find documents about machine learning')"
+                    placeholder="Ask Grahmos AI anything... (e.g., 'Find documents about machine learning')"
                     className="flex-1 py-4 text-lg bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                   

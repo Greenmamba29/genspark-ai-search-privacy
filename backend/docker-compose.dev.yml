@@ -4,7 +4,7 @@ services:
   # Redis for message bus
   redis:
     image: redis:7-alpine
-    container_name: genspark-redis-dev
+    container_name: grahmos-redis-dev
     ports:
       - "6379:6379"
     volumes:
@@ -20,7 +20,7 @@ services:
   # Redis Commander for debugging
   redis-commander:
     image: rediscommander/redis-commander:latest
-    container_name: genspark-redis-commander-dev
+    container_name: grahmos-redis-commander-dev
     environment:
       - REDIS_HOSTS=local:redis:6379
     ports:
@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: genspark-backend-dev
+    container_name: grahmos-backend-dev
     ports:
       - "3001:3001"  # Agent API server
       - "9229:9229"  # Node.js debugger
@@ -48,7 +48,7 @@ services:
       - NODE_ENV=development
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=debug
-      - DATABASE_PATH=/app/data/genspark.db
+      - DATABASE_PATH=/app/data/grahmos.db
     depends_on:
       redis:
         condition: service_healthy
@@ -58,7 +58,7 @@ services:
   # Lightweight file system watcher for testing
   file-watcher:
     image: alpine:latest
-    container_name: genspark-file-watcher-dev
+    container_name: grahmos-file-watcher-dev
     volumes:
       - ../test-files:/watch:ro
       - ./scripts:/scripts:ro
@@ -73,4 +73,4 @@ volumes:
 
 networks:
   default:
-    name: genspark-dev-network
+    name: grahmos-dev-network

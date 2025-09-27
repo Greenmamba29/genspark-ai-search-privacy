@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Search, Clock, TrendingUp, Sparkles, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -14,7 +15,7 @@ interface Suggestion {
   id: string
   text: string
   type: 'recent' | 'trending' | 'ai' | 'completion'
-  icon: React.ReactNode
+  icon: ReactNode
 }
 
 export default function SearchSuggestions({
@@ -106,7 +107,7 @@ export default function SearchSuggestions({
 
   // Handle keyboard navigation
   const handleKeyDown = (event: Event) => {
-    const keyboardEvent = event as unknown as KeyboardEvent
+    const keyboardEvent = event as unknown as ReactKeyboardEvent
     if (!isVisible || suggestions.length === 0) return
 
     switch (keyboardEvent.key) {

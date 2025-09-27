@@ -41,7 +41,7 @@ export function useAdvancedFilters(options: UseAdvancedFiltersOptions = {}) {
     // Try to load from localStorage first
     if (persistToLocalStorage) {
       try {
-        const saved = localStorage.getItem('genspark-advanced-filters')
+        const saved = localStorage.getItem('grahmos-advanced-filters')
         if (saved) {
           const parsed = JSON.parse(saved)
           return { ...DEFAULT_FILTERS, ...parsed }
@@ -88,7 +88,7 @@ export function useAdvancedFilters(options: UseAdvancedFiltersOptions = {}) {
       // Persist to localStorage
       if (persistToLocalStorage) {
         try {
-          localStorage.setItem('genspark-advanced-filters', JSON.stringify(updatedFilters))
+          localStorage.setItem('grahmos-advanced-filters', JSON.stringify(updatedFilters))
         } catch (error) {
           console.warn('Failed to save filters to localStorage:', error)
         }

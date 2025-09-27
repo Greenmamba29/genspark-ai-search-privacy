@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, Map, Upload, X } from 'lucide-react';
+import { Search, Filter, Grid, List, Sparkles, Cpu, Menu, MapPin, Upload, X } from 'lucide-react';
 import { useSearch } from '../../hooks/useSearch';
 import SearchResults from './SearchResults';
 import LeftPanel from '../panels/LeftPanel';
@@ -184,7 +184,7 @@ export default function SearchInterface() {
           }`}
           title="Insights Hub"
         >
-          <Map className="w-5 h-5" />
+          <MapPin className="w-5 h-5" />
         </button>
 
         {/* Upload Button */}

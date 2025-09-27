@@ -243,7 +243,7 @@ cd .. && npm run dev
 Create `backend/.env`:
 ```bash
 REDIS_URL=redis://localhost:6379
-DATABASE_PATH=./data/genspark.db
+DATABASE_PATH=./data/grahmos.db
 LOG_LEVEL=info
 LOG_FILE=./logs/application.log
 MAX_CONCURRENT_OPERATIONS=100

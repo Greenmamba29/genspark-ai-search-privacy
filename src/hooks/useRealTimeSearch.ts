@@ -38,14 +38,14 @@ export function useRealTimeSearch(debounceMs: number = 300, currentModel?: strin
     model: '',
     query: '',
     isBackendConnected: false,
-    searchHistory: JSON.parse(localStorage.getItem('genspark_search_history') || '[]')
+    searchHistory: JSON.parse(localStorage.getItem('grahmos_search_history') || '[]')
   })
 
   const [currentFilters, setCurrentFilters] = useState<SearchFilters>({})
   const [sortBy, setSortBy] = useState<SearchQuery['sortBy']>('relevance')
   const [sortOrder, setSortOrder] = useState<SearchQuery['sortOrder']>('desc')
   
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
   const searchControllerRef = useRef<AbortController>()
 
   // Initialize search service and sync with current model
@@ -90,7 +90,7 @@ export function useRealTimeSearch(debounceMs: number = 300, currentModel?: strin
 
   // Save search history to localStorage
   useEffect(() => {
-    localStorage.setItem('genspark_search_history', JSON.stringify(state.searchHistory))
+    localStorage.setItem('grahmos_search_history', JSON.stringify(state.searchHistory))
   }, [state.searchHistory])
 
   // Real-time search with debouncing

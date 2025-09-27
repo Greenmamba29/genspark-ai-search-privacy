@@ -295,7 +295,7 @@ class SearchService {
 
 // Create default search service instance
 const defaultConfig: SearchConfig = {
-  backendUrl: process.env.NODE_ENV === 'development' 
+  backendUrl: (import.meta as any).env?.DEV
     ? 'http://localhost:3001' 
     : window.location.origin,
   defaultModel: 'all-MiniLM-L6-v2', // Align with ModelContext default

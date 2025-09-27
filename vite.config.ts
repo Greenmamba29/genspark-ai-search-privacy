@@ -1,19 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '@/components': resolve(__dirname, './src/components'),
-      '@/hooks': resolve(__dirname, './src/hooks'),
-      '@/services': resolve(__dirname, './src/services'),
-      '@/types': resolve(__dirname, './src/types'),
-      '@/utils': resolve(__dirname, './src/utils'),
-      '@/styles': resolve(__dirname, './src/styles'),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@/components': fileURLToPath(new URL('./src/components', import.meta.url)),
+      '@/hooks': fileURLToPath(new URL('./src/hooks', import.meta.url)),
+      '@/services': fileURLToPath(new URL('./src/services', import.meta.url)),
+      '@/types': fileURLToPath(new URL('./src/types', import.meta.url)),
+      '@/utils': fileURLToPath(new URL('./src/utils', import.meta.url)),
+      '@/styles': fileURLToPath(new URL('./src/styles', import.meta.url)),
     },
   },
   server: {

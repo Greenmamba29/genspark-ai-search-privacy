@@ -11,7 +11,7 @@ export interface ModelPerformanceMetrics {
   isLoading: boolean
 }
 
-export interface PerformanceEntry {
+export interface ModelPerformanceEntry {
   modelId: string
   responseTime: number
   success: boolean
@@ -55,7 +55,7 @@ export function useModelPerformance() {
   }, [metrics])
 
   // Record a performance entry
-  const recordPerformance = useCallback((entry: PerformanceEntry) => {
+  const recordPerformance = useCallback((entry: ModelPerformanceEntry) => {
     setMetrics(prev => {
       const existing = prev[entry.modelId] || {
         modelId: entry.modelId,
@@ -217,7 +217,7 @@ export function useModelPerformance() {
 // Helper function to measure execution time
 export function measurePerformance<T>(
   fn: () => Promise<T>,
-  onComplete: (entry: Omit<PerformanceEntry, 'timestamp'>) => void,
+  onComplete: (entry: Omit<ModelPerformanceEntry, 'timestamp'>) => void,
   modelId: string,
   queryType: 'search' | 'chat' | 'analysis' = 'search'
 ): Promise<T> {

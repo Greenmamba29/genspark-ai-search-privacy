@@ -5,7 +5,7 @@ import {
   Sparkles,
   Cpu,
   Menu,
-  Map,
+  MapPin,
   Upload,
   X,
   Lightbulb,
@@ -674,7 +674,7 @@ export default function EnhancedSearchInterface() {
                     }`}
                     title="Insights Hub"
                   >
-                    <Map className="w-5 h-5" />
+                    <MapPin className="w-5 h-5" />
                   </motion.button>
 
                   <motion.button

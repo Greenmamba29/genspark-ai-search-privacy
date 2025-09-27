@@ -5,7 +5,7 @@
 
 ## Overview
 
-All references to "GenSpark" and "Genspark" have been successfully updated to "Grahmos" throughout the entire codebase to correct the project branding.
+All references to "GenSpark" and "Grahmos" have been successfully updated to "Grahmos" throughout the entire codebase to correct the project branding.
 
 ## Files Updated
 

@@ -143,7 +143,7 @@ Create `.env` file in backend directory:
 REDIS_URL=redis://localhost:6379
 
 # Database Configuration  
-DATABASE_PATH=./data/genspark.db
+DATABASE_PATH=./data/grahmos.db
 
 # Logging Configuration
 LOG_LEVEL=info
@@ -309,7 +309,7 @@ NODE_ENV=production npm start
 ### Docker Deployment
 ```bash
 # Build production image
-docker build -t genspark-backend .
+docker build -t grahmos-backend .
 
 # Run with docker-compose
 docker-compose -f docker-compose.prod.yml up -d
@@ -319,7 +319,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ```bash
 NODE_ENV=production
 REDIS_URL=redis://redis:6379
-DATABASE_PATH=/app/data/genspark.db
+DATABASE_PATH=/app/data/grahmos.db
 LOG_LEVEL=warn
 MAX_FILE_SIZE=104857600  # 100MB
 WORKER_PROCESSES=4

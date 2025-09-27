@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Upload, FolderPlus, File, FileText, Image, Video, Music, Code, Archive, AlertCircle } from 'lucide-react'
+import type { DragEvent, ChangeEvent } from 'react'
+import { X, Upload, FolderPlus, File as FileIcon, FileText, Image as ImageIcon, Video, Music, Code, Archive, AlertCircle } from 'lucide-react'
 import { useThemeContext } from '../../contexts/ThemeContext'
 
 interface UploadFile {
@@ -18,13 +19,13 @@ interface QuickUploadModalProps {
 }
 
 const getFileIcon = (type: string) => {
-  if (type.startsWith('image/')) return Image
+  if (type.startsWith('image/')) return ImageIcon
   if (type.startsWith('video/')) return Video
   if (type.startsWith('audio/')) return Music
   if (type.includes('pdf') || type.includes('document') || type.includes('text')) return FileText
   if (type.includes('zip') || type.includes('rar') || type.includes('tar')) return Archive
   if (type.includes('javascript') || type.includes('typescript') || type.includes('python')) return Code
-  return File
+  return FileIcon
 }
 
 const suggestFolder = (file: File): string => {
@@ -64,23 +65,23 @@ export default function QuickUploadModal({ onClose, onUpload }: QuickUploadModal
   }, [onClose])
 
   // Handle drag and drop
-  const handleDragEnter = (e: React.DragEvent) => {
+  const handleDragEnter = (e: DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
   }
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: DragEvent) => {
     e.preventDefault()
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDragging(false)
     }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: DragEvent) => {
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
     
@@ -88,7 +89,7 @@ export default function QuickUploadModal({ onClose, onUpload }: QuickUploadModal
     processFiles(droppedFiles)
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files)
       processFiles(selectedFiles)

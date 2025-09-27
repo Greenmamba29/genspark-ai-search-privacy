@@ -8,7 +8,7 @@ Your privacy-enhanced Grahmos AI Search system is ready for deployment! Follow t
 2. **Click the "+" icon** in the top right corner
 3. **Select "New repository"**
 4. **Configure your repository:**
-   - **Repository name**: `genspark-ai-search-privacy` (or your preferred name)
+   - **Repository name**: `grahmos-ai-search-privacy` (or your preferred name)
    - **Description**: `Privacy-first AI search engine with intelligent document processing and multi-agent architecture`
    - **Visibility**: Choose Public or Private as desired
    - **DO NOT** initialize with README, .gitignore, or license (we already have these)
@@ -20,7 +20,7 @@ After creating the repository, GitHub will show you setup instructions. Run thes
 
 ```bash
 # Navigate to your project
-cd /Users/paco/Downloads/Grahmos-AI-Search
+cd /Users/paco/Downloads/grahmos-ai-search-privacy
 
 # Add GitHub as remote origin (replace YOUR_USERNAME and REPO_NAME)
 git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
@@ -44,7 +44,7 @@ After pushing, you should see:
 
 1. **Go to [netlify.com](https://netlify.com)** and sign in
 2. **Click "Add new site" → "Import an existing project"**
-3. **Connect to GitHub** and select your `genspark-ai-search-privacy` repository
+3. **Connect to GitHub** and select your `grahmos-ai-search-privacy` repository
 4. **Configure build settings:**
    - **Build command**: `npm run build`
    - **Publish directory**: `dist`

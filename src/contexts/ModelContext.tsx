@@ -123,7 +123,7 @@ const AVAILABLE_MODELS: ModelInfo[] = [
   }
 ]
 
-const LOCAL_STORAGE_KEY = 'genspark_model_preferences'
+const LOCAL_STORAGE_KEY = 'grahmos_model_preferences'
 
 function modelReducer(state: ModelState, action: ModelAction): ModelState {
   switch (action.type) {
